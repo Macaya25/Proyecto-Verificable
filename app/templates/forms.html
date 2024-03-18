@@ -1,7 +1,39 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-<h1>Forms</h1>
-
+<div class="container mt-5">
+    <h1>Lista de Formularios</h1>
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>N° Atención</th>
+                <th>CNE</th>
+                <th>Comuna</th>
+                <th>Manzana</th>
+                <th>Predio</th>
+                <th>Fojas</th>
+                <th>Fecha de Inscripción</th>
+                <th>Número de Inscripción</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for formulario in forms %}
+                <tr>
+                    <td>{{ formulario.n_atencion }}</td>
+                    <td>{{ formulario.cne }}</td>
+                    <td>{{ formulario.comuna }}</td>
+                    <td>{{ formulario.manzana }}</td>
+                    <td>{{ formulario.predio }}</td>
+                    <td>{{ formulario.fojas }}</td>
+                    <td>{{ formulario.fecha_inscripcion.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ formulario.num_inscripcion }}</td>
+                    <td>
+                        <a href="{{ url_for('form_details', n_atencion=formulario.n_atencion) }}" class="btn btn-info btn-sm">Ver Detalles</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

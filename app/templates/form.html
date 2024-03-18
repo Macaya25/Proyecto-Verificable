@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h1 class="mb-4">Registrar Formulario</h1>
+    <form method="post" id="formulario">
+        {{ form.hidden_tag() }}
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="cne">CNE</label>
+                    {{ form.cne(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="comuna">Comuna</label>
+                    {{ form.comuna(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="manzana">Manzana</label>
+                    {{ form.manzana(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="predio">Predio</label>
+                    {{ form.predio(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="fojas">Fojas</label>
+                    {{ form.fojas(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="fecha_inscripcion">Fecha de Inscripción</label>
+                    {{ form.fecha_inscripcion(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="num_inscripcion">Número de Inscripción</label>
+                    {{ form.num_inscripcion(class="form-control") }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h2>Enajenantes</h2>
+                <div id="enajenantes-container">
+                    {% for enajenante in form.enajenantes %}
+                        <div class="form-group enajenante-group">
+                            {{ enajenante.run_rut.label }} {{ enajenante.run_rut(class="form-control mb-1") }}
+                            {{ enajenante.porc_derecho.label }} {{ enajenante.porc_derecho(class="form-control mb-1") }}
+                            {% if loop.index > 1 %}
+                                <button type="button" class="btn btn-danger btn-sm mb-3" onclick="removeEnajenante(this)">Eliminar</button>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <button type="button" class="btn btn-info" onclick="addEnajenante()">Añadir Enajenante</button>
+                </div>
+
+                <h2>Adquirentes</h2>
+                <div id="adquirentes-container">
+                    {% for adquirente in form.adquirentes %}
+                        <div class="form-group adquirente-group">
+                            {{ adquirente.run_rut.label }} {{ adquirente.run_rut(class="form-control mb-1") }}
+                            {{ adquirente.porc_derecho.label }} {{ adquirente.porc_derecho(class="form-control mb-1") }}
+                            {% if loop.index > 1 %}
+                                <button type="button" class="btn btn-danger btn-sm mb-3" onclick="removeAdquirente(this)">Eliminar</button>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <button type="button" class="btn btn-info" onclick="addAdquirente()">Añadir Adquirente</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+
+<script>
+    function addEnajenante() {
+        var container = document.getElementById('enajenantes-container');
+        var newGroup = document.createElement('div');
+        newGroup.classList.add('form-group', 'enajenante-group', 'mt-3');
+        newGroup.innerHTML = `
+            <input type="text" name="enajenantes-{{ form.enajenantes|length }}-run_rut" class="form-control mb-1" placeholder="RUN/RUT" required>
+            <input type="number" name="enajenantes-{{ form.enajenantes|length }}-porc_derecho" class="form-control mb-1" placeholder="% Derecho" required>
+            <button type="button" class="btn btn-danger btn-sm mb-2" onclick="removeEnajenante(this)">Eliminar</button>
+        `;
+        container.appendChild(newGroup);
+    }
+
+    function removeEnajenante(button) {
+        var group = button.closest('.enajenante-group');
+        group.remove();
+    }
+
+    function addAdquirente() {
+        var container = document.getElementById('adquirentes-container');
+        var newGroup = document.createElement('div');
+        newGroup.classList.add('form-group', 'adquirente-group', 'mt-3');
+        newGroup.innerHTML = `
+            <input type="text" name="adquirentes-{{ form.adquirentes|length }}-run_rut" class="form-control mb-1" placeholder="RUN/RUT" required>
+            <input type="number" name="adquirentes-{{ form.adquirentes|length }}-porc_derecho" class="form-control mb-1" placeholder="% Derecho" required>
+            <button type="button" class="btn btn-danger btn-sm mb-2" onclick="removeAdquirente(this)">Eliminar</button>
+        `;
+        container.appendChild(newGroup);
+    }
+
+    function removeAdquirente(button) {
+        var group = button.closest('.adquirente-group');
+        group.remove();
+    }
+</script>
+
+{% endblock %}
