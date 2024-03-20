@@ -11,7 +11,7 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="cne">CNE</label>
-                    {{ form.cne(class="form-control") }}
+                    {{ form.cne(class="form-control", id="cne-select") }}
                 </div>
                 <div class="form-group">
                     <label for="comuna">Comuna</label>
@@ -40,18 +40,20 @@
             </div>
 
             <div class="col-md-6">
-                <h2>Enajenantes</h2>
-                <div id="enajenantes-container">
-                    {% for enajenante in form.enajenantes %}
-                        <div class="form-group enajenante-group">
-                            {{ enajenante.run_rut.label }} {{ enajenante.run_rut(class="form-control mb-1") }}
-                            {{ enajenante.porc_derecho.label }} {{ enajenante.porc_derecho(class="form-control mb-1") }}
-                            {% if loop.index > 1 %}
-                                <button type="button" class="btn btn-danger btn-sm mb-3" onclick="removeEnajenante(this)">Eliminar</button>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                    <button type="button" class="btn btn-info" onclick="addEnajenante()">Añadir Enajenante</button>
+                <div id="enajenantes-section">
+                    <h2>Enajenantes</h2>
+                    <div id="enajenantes-container">
+                        {% for enajenante in form.enajenantes %}
+                            <div class="form-group enajenante-group">
+                                {{ enajenante.run_rut.label }} {{ enajenante.run_rut(class="form-control mb-1") }}
+                                {{ enajenante.porc_derecho.label }} {{ enajenante.porc_derecho(class="form-control mb-1") }}
+                                {% if loop.index > 1 %}
+                                    <button type="button" class="btn btn-danger btn-sm mb-3" onclick="removeEnajenante(this)">Eliminar</button>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="button" class="btn btn-info" onclick="addEnajenante()">Añadir Enajenante</button>
+                    </div>
                 </div>
 
                 <h2>Adquirentes</h2>
@@ -110,6 +112,18 @@
         var group = button.closest('.adquirente-group');
         group.remove();
     }
+
+    function toggleEnajenantesVisibility() {
+        var cneField = document.getElementById('cne-select');
+        var enajenantesContainer = document.getElementById('enajenantes-section');
+        if (cneField.value === '99') { 
+            enajenantesContainer.style.display = 'none';
+        } else {
+            enajenantesContainer.style.display = 'block';
+        }
+    }
+    document.getElementById('cne-select').addEventListener('change', toggleEnajenantesVisibility);
+    toggleEnajenantesVisibility();
 </script>
 
 {% endblock %}

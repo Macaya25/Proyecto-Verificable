@@ -1,13 +1,14 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SubmitField, DateField, FieldList, FormField, SelectField
 from wtforms.validators import DataRequired, NumberRange
+from models import CNE
 
 class PersonaForm(FlaskForm):
     run_rut = StringField('RUN/RUT', validators=[DataRequired()])
     porc_derecho = IntegerField('% Derecho', validators=[DataRequired(), NumberRange(min=1, max=100)])
 
 class FormularioForm(FlaskForm):
-    cne = SelectField('CNE', choices=[(8, 'Compraventa'), (99, 'Regularización de Patrimonio')], coerce=int, validators=[DataRequired()])
+    cne = SelectField('CNE', coerce=int, validators=[DataRequired()])
     comuna = StringField('Comuna', validators=[DataRequired()])
     manzana = StringField('Manzana', validators=[DataRequired()])
     predio = StringField('Predio', validators=[DataRequired()])
@@ -17,3 +18,7 @@ class FormularioForm(FlaskForm):
     enajenantes = FieldList(FormField(PersonaForm), min_entries=1)
     adquirentes = FieldList(FormField(PersonaForm), min_entries=1)
     submit = SubmitField('Registrar')
+
+    def __init__(self, *args, **kwargs):
+        super(FormularioForm, self).__init__(*args, **kwargs)
+        self.cne.choices = [(cne.id, cne.descripcion) for cne in CNE.query.all()]

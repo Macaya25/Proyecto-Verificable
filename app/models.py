@@ -50,3 +50,8 @@ class Multipropietario(db.Model):
     fecha_inscripcion = db.Column(db.Date, nullable=False)
     ano_vigencia_inicial = db.Column(db.Integer, nullable=False)
     ano_vigencia_final = db.Column(db.Integer, nullable=True)
+
+class CNE(db.Model):
+    __tablename__ = 'cne'
+    id = db.Column(db.Integer, primary_key=True)
+    descripcion = db.Column(db.String(255), nullable=False, index=True)
