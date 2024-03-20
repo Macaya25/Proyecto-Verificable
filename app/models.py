@@ -55,3 +55,17 @@ class CNE(db.Model):
     __tablename__ = 'cne'
     id = db.Column(db.Integer, primary_key=True)
     descripcion = db.Column(db.String(255), nullable=False, index=True)
+
+class Region(db.Model):
+    __tablename__ = 'region'
+    id = db.Column(db.Integer, primary_key=True)
+    descripcion = db.Column(db.String(255), nullable=False, index=True)
+    numero = db.Column(db.Integer, nullable=False, index=True)
+    orden = db.Column(db.Integer, nullable=False, index=True)
+    descripcion_corta = db.Column(db.String(255), nullable=False, index=True)
+
+class Comuna(db.Model):
+    __tablename__ = 'comuna'
+    id = db.Column(db.Integer, primary_key=True)
+    descripcion = db.Column(db.String(255), nullable=False, index=True)
+    id_region = db.Column(db.Integer, db.ForeignKey('region.id'), nullable=False, index=True)

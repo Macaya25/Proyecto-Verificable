@@ -1,18 +1,15 @@
 from flask import Flask, render_template, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from forms import FormularioForm
-from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario
+from models import db, Formulario, Persona, Enajenante, Adquirente
 import os
 from dotenv import load_dotenv
 import logging
 
-# Load environment variables
 load_dotenv()
 secret_key = os.getenv('SECRET_KEY')
 
 app = Flask(__name__)
-# Ensure the database URI is properly configured
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
 app.config['SECRET_KEY'] = secret_key
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
