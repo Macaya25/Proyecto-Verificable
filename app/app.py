@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_wtf.csrf import CSRFProtect
-from forms import FormularioForm
+from forms import FormularioForm, JSONForm
 from models import db, Formulario, Persona, Enajenante, Adquirente
 import os
 from dotenv import load_dotenv
@@ -71,6 +71,20 @@ def form():
 def forms():
     forms = Formulario.query.all()
     return render_template('forms.html', forms=forms)
+
+@app.route('/form/json', methods=['GET', 'POST'])
+def formJson():
+    form = JSONForm()
+
+    if form.validate_on_submit():
+        file = form.file.data
+
+        if file.filename.endswith('.json'):
+            json = file.read().decode('utf-8')
+        else:
+            print('Archivo no es json.')
+        
+    return render_template('formJSON.html', form=form)
 
 @app.route('/forms/<int:n_atencion>')
 def form_details(n_atencion):
