@@ -2,9 +2,10 @@ from flask import Flask, render_template, redirect, url_for, flash
 from flask_wtf.csrf import CSRFProtect
 from forms import FormularioForm, JSONForm
 from models import db, Formulario, Persona, Enajenante, Adquirente
-import os
+import os, logging, json
+from tools import *
 from dotenv import load_dotenv
-import logging
+
 
 load_dotenv()
 secret_key = os.getenv('SECRET_KEY')
@@ -80,7 +81,10 @@ def formJson():
         file = form.file.data
 
         if file.filename.endswith('.json'):
-            json = file.read().decode('utf-8')
+            file = json.loads(file.read().decode('utf-8'))
+            
+            analyzeJSON(db, file)
+
         else:
             print('Archivo no es json.')
         

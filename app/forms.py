@@ -25,15 +25,6 @@ class FormularioForm(FlaskForm):
         self.cne.choices = [(cne.id, cne.descripcion) for cne in CNE.query.all()]
 
 class JSONForm(FlaskForm):
-    def validate_json_file(self, field):
-        if not field.data:
-            raise ValidationError('File is required.')
-        
-        try:
-            json.loads(field.data.read().decode('utf-8'))
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            raise ValidationError('Invalid JSON file.')
-        
     file = FileField('File', validators=[InputRequired()])
     submit = SubmitField('Upload File')
 

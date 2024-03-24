@@ -4,6 +4,9 @@ from sqlalchemy.orm import relationship
 db = SQLAlchemy()
 
 class Formulario(db.Model):
+    def __repr__(self) -> str:
+        return "ID: {}\tCNE: {}\tFojas: {}".format(self.n_atencion, self.cne, self.fojas)
+    
     __tablename__ = 'formulario'
     n_atencion = db.Column(db.Integer, primary_key=True, autoincrement=True, index=True)
     cne = db.Column(db.Integer, nullable=False)
