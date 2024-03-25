@@ -24,7 +24,7 @@ def analyzeJSON(db: SQLAlchemy, JSON):
                         parse(value)
                         setattr(newForm, 'fecha_inscripcion', value)
                     except ValueError:
-                        setattr(newForm, 'fecha_inscripcion', datetime(1900, 1, 1).date())
+                        setattr(newForm, 'fecha_inscripcion', None)
                     
                     
                 elif key == 'nroInscripcion':

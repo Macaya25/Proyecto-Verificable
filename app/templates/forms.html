@@ -34,7 +34,13 @@
                     <td>{{ formulario.manzana }}</td>
                     <td>{{ formulario.predio }}</td>
                     <td>{{ formulario.fojas }}</td>
-                    <td>{{ formulario.fecha_inscripcion.strftime('%Y-%m-%d') }}</td>
+
+                    {% if (formulario.fecha_inscripcion != None) %}
+                        <td>{{ formulario.fecha_inscripcion.strftime('%Y-%m-%d') }}</td>
+                    {% else %}
+                        <td> No registrada. </td>
+                    {% endif %}
+
                     <td>{{ formulario.num_inscripcion }}</td>
                     <td>
                         <a href="{{ url_for('form_details', n_atencion=formulario.n_atencion) }}" class="btn btn-info btn-sm">Ver Detalles</a>

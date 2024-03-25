@@ -9,13 +9,13 @@ class Formulario(db.Model):
     
     __tablename__ = 'formulario'
     n_atencion = db.Column(db.Integer, primary_key=True, autoincrement=True, index=True)
-    cne = db.Column(db.Integer, nullable=False)
-    comuna = db.Column(db.String(50), nullable=False, index=True)
-    manzana = db.Column(db.String(50), nullable=False, index=True)
-    predio = db.Column(db.String(50), nullable=False, index=True)
-    fojas = db.Column(db.Integer, nullable=False)
-    fecha_inscripcion = db.Column(db.Date, nullable=False)
-    num_inscripcion = db.Column(db.Integer, nullable=False, index=True)
+    cne = db.Column(db.Integer)
+    comuna = db.Column(db.String(50), index=True)
+    manzana = db.Column(db.String(50), index=True)
+    predio = db.Column(db.String(50), index=True)
+    fojas = db.Column(db.Integer)
+    fecha_inscripcion = db.Column(db.Date)
+    num_inscripcion = db.Column(db.Integer, index=True)
     enajenantes = relationship('Enajenante', backref='formulario', lazy=True)
     adquirentes = relationship('Adquirente', backref='formulario', lazy=True)
 
@@ -28,14 +28,14 @@ class Persona(db.Model):
 class Enajenante(db.Model):
     __tablename__ = 'enajenante'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    porc_derecho = db.Column(db.Integer, nullable=False)
+    porc_derecho = db.Column(db.Integer)
     form_id = db.Column(db.Integer, db.ForeignKey('formulario.n_atencion'), nullable=False)
     run_rut = db.Column(db.String(50), db.ForeignKey('persona.run_rut'), nullable=False)
 
 class Adquirente(db.Model):
     __tablename__ = 'adquirente'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    porc_derecho = db.Column(db.Integer, nullable=False)
+    porc_derecho = db.Column(db.Integer)
     form_id = db.Column(db.Integer, db.ForeignKey('formulario.n_atencion'), nullable=False)
     run_rut = db.Column(db.String(50), db.ForeignKey('persona.run_rut'), nullable=False)
 
