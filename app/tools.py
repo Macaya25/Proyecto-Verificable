@@ -1,14 +1,15 @@
-from models import Formulario, Enajenante, Persona
+from models import Formulario, Enajenante, Adquirente, Persona
 from flask_sqlalchemy import SQLAlchemy
 from dateutil.parser import parse
 from datetime import datetime
+from typing import List
 
 def analyzeJSON(db: SQLAlchemy, JSON):
     if JSON['F2890']:
         for single_form in JSON['F2890']:
             newForm = Formulario()
-            enajenantes = []
-
+            enajenantes: List[Enajenante] = []
+            adquirientes: List[Adquirente] = []
             
             main_keys = ['cne', 'bienRaiz', 'fojas', 'fecha_inscripcion', 'num_inscripcion']
             location_keys = ['comuna', 'manzana', 'predio']
@@ -55,6 +56,22 @@ def analyzeJSON(db: SQLAlchemy, JSON):
                         
                         enajenantes.append(newEnajenante)
                 
+                elif key == 'adquirentes':
+                    for singleAdquiriente in single_form['adquirentes']:
+                        newAdquiriente = Adquirente()
+                        if 'RUNRUT' in singleAdquiriente.keys():
+                            newAdquiriente.run_rut = singleAdquiriente['RUNRUT']
+
+                            person = Persona.query.filter_by(run_rut=newAdquiriente.run_rut).first()
+                            if person is None:
+                                person = Persona(run_rut=newAdquiriente.run_rut)
+                                db.session.add(person)
+                                db.session.commit()
+                        
+                        if 'porcDerecho' in singleAdquiriente.keys():
+                            newAdquiriente.porc_derecho = singleAdquiriente['porcDerecho']
+
+                        adquirientes.append(newAdquiriente)
 
             db.session.add(newForm)
             db.session.commit()
@@ -62,6 +79,11 @@ def analyzeJSON(db: SQLAlchemy, JSON):
             for singleEnajenante in enajenantes:
                 singleEnajenante.form_id = newForm.n_atencion
                 db.session.add(singleEnajenante)
+            db.session.commit()
+
+            for singleAdquiriente in adquirientes:
+                singleAdquiriente.form_id = newForm.n_atencion
+                db.session.add(singleAdquiriente)
             db.session.commit()
 
     else:
