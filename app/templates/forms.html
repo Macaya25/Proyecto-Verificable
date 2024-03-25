@@ -2,7 +2,15 @@
 
 {% block content %}
 <div class="container mt-5">
+    <h4 class="col-12 d-flex justify-content-end"> Nuevo Formulario </h4>
+    <div class="col-12 d-flex justify-content-end">
+        <div class="btn-group" role="group" aria-label="Options">
+            <a class="btn btn-secondary" href="{{ url_for('form') }}"> Singular </a>
+            <a class="btn btn-secondary" href="{{ url_for('formJson') }}"> JSON </a>
+        </div>
+    </div>
     <h1>Lista de Formularios</h1>
+    <hr/>
     <table class="table table-striped mt-3">
         <thead>
             <tr>
