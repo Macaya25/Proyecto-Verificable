@@ -24,12 +24,12 @@ logging.basicConfig(level=logging.DEBUG,
 
 
 @app.route('/')
-def index() -> str:
+def index_route() -> str:
     return render_template('index.html')
 
 
 @app.route('/form', methods=['GET', 'POST'])
-def form():
+def form_route():
     form = FormularioForm()
     if form.validate_on_submit():
         new_formulario = Formulario(
@@ -77,13 +77,13 @@ def form():
 
 
 @app.route('/forms')
-def forms():
+def forms_route():
     forms = Formulario.query.all()
     return render_template('forms.html', forms=forms)
 
 
 @app.route('/form/json', methods=['GET', 'POST'])
-def formJson():
+def form_json_route():
     form = JSONForm()
 
     if form.validate_on_submit():
@@ -101,7 +101,7 @@ def formJson():
 
 
 @app.route('/forms/<int:n_atencion>')
-def form_details(n_atencion):
+def form_details_route(n_atencion):
     formulario = Formulario.query.get_or_404(n_atencion)
     return render_template('form_details.html', formulario=formulario)
 

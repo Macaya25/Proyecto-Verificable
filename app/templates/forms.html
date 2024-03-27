@@ -5,8 +5,8 @@
     <h4 class="col-12 d-flex justify-content-end"> Nuevo Formulario </h4>
     <div class="col-12 d-flex justify-content-end">
         <div class="btn-group" role="group" aria-label="Options">
-            <a class="btn btn-info btn-sm" href="{{ url_for('form') }}"> Singular </a>
-            <a class="btn btn-info btn-sm" href="{{ url_for('formJson') }}"> JSON </a>
+            <a class="btn btn-info btn-sm" href="{{ url_for('form_route') }}"> Singular </a>
+            <a class="btn btn-info btn-sm" href="{{ url_for('form_json_route') }}"> JSON </a>
         </div>
     </div>
     <h1>Lista de Formularios</h1>
@@ -43,7 +43,7 @@
 
                     <td>{{ formulario.num_inscripcion }}</td>
                     <td>
-                        <a href="{{ url_for('form_details', n_atencion=formulario.n_atencion) }}" class="btn btn-info btn-sm">Ver Detalles</a>
+                        <a href="{{ url_for('form_details_route', n_atencion=formulario.n_atencion) }}" class="btn btn-info btn-sm">Ver Detalles</a>
                     </td>
                 </tr>
             {% endfor %}

@@ -1,93 +1,93 @@
+from typing import List
 from models import Formulario, Enajenante, Adquirente, Persona
 from flask_sqlalchemy import SQLAlchemy
 from dateutil.parser import parse
-from datetime import datetime
-from typing import List
 
 
 def analyze_json(db: SQLAlchemy, JSON):
     if JSON['F2890']:
         for single_form in JSON['F2890']:
-            newForm: Formulario = Formulario()
+            new_form: Formulario = Formulario()
             enajenantes: List[Enajenante] = []
             adquirientes: List[Adquirente] = []
 
             main_keys = ['cne', 'bienRaiz', 'fojas',
                          'fecha_inscripcion', 'num_inscripcion']
-            location_keys = ['comuna', 'manzana', 'predio']
+            # location_keys = ['comuna', 'manzana', 'predio']
 
             for key, value in single_form.items():
                 if key != 'bienRaiz' and key in main_keys:
-                    setattr(newForm, key, value)
+                    setattr(new_form, key, value)
                 elif key == "CNE":
-                    setattr(newForm, 'cne', value)
+                    setattr(new_form, 'cne', value)
                 elif key == "fechaInscripcion":
                     try:
                         parse(value)
-                        setattr(newForm, 'fecha_inscripcion', value)
+                        setattr(new_form, 'fecha_inscripcion', value)
                     except ValueError:
-                        setattr(newForm, 'fecha_inscripcion', None)
+                        setattr(new_form, 'fecha_inscripcion', None)
 
                 elif key == 'nroInscripcion':
-                    setattr(newForm, 'num_inscripcion', value)
+                    setattr(new_form, 'num_inscripcion', value)
 
                 elif key == 'bienRaiz':
                     for k, v in single_form['bienRaiz'].items():
                         if k == 'comuna':
-                            setattr(newForm, 'comuna', v)
+                            setattr(new_form, 'comuna', v)
                         elif k == 'manzana':
-                            setattr(newForm, 'manzana', v)
+                            setattr(new_form, 'manzana', v)
                         elif k == 'predio':
-                            setattr(newForm, 'predio', v)
+                            setattr(new_form, 'predio', v)
 
                 elif key == 'enajenantes':
-                    for singleEnajenante in single_form['enajenantes']:
-                        newEnajenante = Enajenante()
-                        if 'RUNRUT' in singleEnajenante.keys():
-                            newEnajenante.run_rut = singleEnajenante['RUNRUT']
+                    for single_enajenante in single_form['enajenantes']:
+                        new_enajenante = Enajenante()
+                        if 'RUNRUT' in single_enajenante.keys():
+                            new_enajenante.run_rut = single_enajenante['RUNRUT']
 
                             person = Persona.query.filter_by(
-                                run_rut=newEnajenante.run_rut).first()
-                            if person is None:
-                                person = Persona(run_rut=newEnajenante.run_rut)
-                                db.session.add(person)
-                                db.session.commit()
-
-                        if 'porcDerecho' in singleEnajenante.keys():
-                            newEnajenante.porc_derecho = singleEnajenante['porcDerecho']
-
-                        enajenantes.append(newEnajenante)
-
-                elif key == 'adquirentes':
-                    for singleAdquiriente in single_form['adquirentes']:
-                        newAdquiriente = Adquirente()
-                        if 'RUNRUT' in singleAdquiriente.keys():
-                            newAdquiriente.run_rut = singleAdquiriente['RUNRUT']
-
-                            person = Persona.query.filter_by(
-                                run_rut=newAdquiriente.run_rut).first()
+                                run_rut=new_enajenante.run_rut).first()
                             if person is None:
                                 person = Persona(
-                                    run_rut=newAdquiriente.run_rut)
+                                    run_rut=new_enajenante.run_rut)
                                 db.session.add(person)
                                 db.session.commit()
 
-                        if 'porcDerecho' in singleAdquiriente.keys():
-                            newAdquiriente.porc_derecho = singleAdquiriente['porcDerecho']
+                        if 'porcDerecho' in single_enajenante.keys():
+                            new_enajenante.porc_derecho = single_enajenante['porcDerecho']
 
-                        adquirientes.append(newAdquiriente)
+                        enajenantes.append(new_enajenante)
 
-            db.session.add(newForm)
+                elif key == 'adquirentes':
+                    for single_adquiriente in single_form['adquirentes']:
+                        new_adquiriente = Adquirente()
+                        if 'RUNRUT' in single_adquiriente.keys():
+                            new_adquiriente.run_rut = single_adquiriente['RUNRUT']
+
+                            person = Persona.query.filter_by(
+                                run_rut=new_adquiriente.run_rut).first()
+                            if person is None:
+                                person = Persona(
+                                    run_rut=new_adquiriente.run_rut)
+                                db.session.add(person)
+                                db.session.commit()
+
+                        if 'porcDerecho' in single_adquiriente.keys():
+                            new_adquiriente.porc_derecho = single_adquiriente['porcDerecho']
+
+                        adquirientes.append(new_adquiriente)
+
+            db.session.add(new_form)
             db.session.commit()
 
-            for singleEnajenante in enajenantes:
-                singleEnajenante.form_id = newForm.n_atencion
-                db.session.add(singleEnajenante)
+            for single_enajenante in enajenantes:
+                single_enajenante.form_id = new_form.n_atencion
+                db.session.add(single_enajenante)
             db.session.commit()
 
-            for singleAdquiriente in adquirientes:
-                singleAdquiriente.form_id = newForm.n_atencion
-                db.session.add(singleAdquiriente)
+            for single_adquiriente in adquirientes:
+                single_adquiriente.form_id = new_form.n_atencion
+                db.session.add(single_adquiriente)
             db.session.commit()
 
     else:
