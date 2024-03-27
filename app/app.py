@@ -1,9 +1,11 @@
+import os
+import logging
+import json
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_wtf.csrf import CSRFProtect
 from forms import FormularioForm, JSONForm
 from models import db, Formulario, Persona, Enajenante, Adquirente
-import os, logging, json
-from tools import *
+from tools import analyze_json
 from dotenv import load_dotenv
 
 
@@ -17,11 +19,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 csrf = CSRFProtect(app)
 db.init_app(app)
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 @app.route('/')
-def index():
+def index() -> str:
     return render_template('index.html')
+
 
 @app.route('/form', methods=['GET', 'POST'])
 def form():
@@ -41,7 +46,8 @@ def form():
         for enajenante_data in form.enajenantes.data:
             enajenante_persona = Persona.query.get(enajenante_data['run_rut'])
             if not enajenante_persona:
-                enajenante_persona = Persona(run_rut=enajenante_data['run_rut'])
+                enajenante_persona = Persona(
+                    run_rut=enajenante_data['run_rut'])
                 db.session.add(enajenante_persona)
             new_enajenante = Enajenante(
                 porc_derecho=enajenante_data['porc_derecho'],
@@ -53,7 +59,8 @@ def form():
         for adquirente_data in form.adquirentes.data:
             adquirente_persona = Persona.query.get(adquirente_data['run_rut'])
             if not adquirente_persona:
-                adquirente_persona = Persona(run_rut=adquirente_data['run_rut'])
+                adquirente_persona = Persona(
+                    run_rut=adquirente_data['run_rut'])
                 db.session.add(adquirente_persona)
             new_adquirente = Adquirente(
                 porc_derecho=adquirente_data['porc_derecho'],
@@ -68,10 +75,12 @@ def form():
 
     return render_template('form.html', form=form)
 
+
 @app.route('/forms')
 def forms():
     forms = Formulario.query.all()
     return render_template('forms.html', forms=forms)
+
 
 @app.route('/form/json', methods=['GET', 'POST'])
 def formJson():
@@ -82,13 +91,14 @@ def formJson():
 
         if file.filename.endswith('.json'):
             file = json.loads(file.read().decode('utf-8'))
-            
-            analyzeJSON(db, file)
+
+            analyze_json(db, file)
 
         else:
             print('Archivo no es json.')
-        
+
     return render_template('formJSON.html', form=form)
+
 
 @app.route('/forms/<int:n_atencion>')
 def form_details(n_atencion):

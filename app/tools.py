@@ -4,14 +4,16 @@ from dateutil.parser import parse
 from datetime import datetime
 from typing import List
 
-def analyzeJSON(db: SQLAlchemy, JSON):
+
+def analyze_json(db: SQLAlchemy, JSON):
     if JSON['F2890']:
         for single_form in JSON['F2890']:
-            newForm = Formulario()
+            newForm: Formulario = Formulario()
             enajenantes: List[Enajenante] = []
             adquirientes: List[Adquirente] = []
-            
-            main_keys = ['cne', 'bienRaiz', 'fojas', 'fecha_inscripcion', 'num_inscripcion']
+
+            main_keys = ['cne', 'bienRaiz', 'fojas',
+                         'fecha_inscripcion', 'num_inscripcion']
             location_keys = ['comuna', 'manzana', 'predio']
 
             for key, value in single_form.items():
@@ -25,8 +27,7 @@ def analyzeJSON(db: SQLAlchemy, JSON):
                         setattr(newForm, 'fecha_inscripcion', value)
                     except ValueError:
                         setattr(newForm, 'fecha_inscripcion', None)
-                    
-                    
+
                 elif key == 'nroInscripcion':
                     setattr(newForm, 'num_inscripcion', value)
 
@@ -45,7 +46,8 @@ def analyzeJSON(db: SQLAlchemy, JSON):
                         if 'RUNRUT' in singleEnajenante.keys():
                             newEnajenante.run_rut = singleEnajenante['RUNRUT']
 
-                            person = Persona.query.filter_by(run_rut=newEnajenante.run_rut).first()
+                            person = Persona.query.filter_by(
+                                run_rut=newEnajenante.run_rut).first()
                             if person is None:
                                 person = Persona(run_rut=newEnajenante.run_rut)
                                 db.session.add(person)
@@ -53,21 +55,23 @@ def analyzeJSON(db: SQLAlchemy, JSON):
 
                         if 'porcDerecho' in singleEnajenante.keys():
                             newEnajenante.porc_derecho = singleEnajenante['porcDerecho']
-                        
+
                         enajenantes.append(newEnajenante)
-                
+
                 elif key == 'adquirentes':
                     for singleAdquiriente in single_form['adquirentes']:
                         newAdquiriente = Adquirente()
                         if 'RUNRUT' in singleAdquiriente.keys():
                             newAdquiriente.run_rut = singleAdquiriente['RUNRUT']
 
-                            person = Persona.query.filter_by(run_rut=newAdquiriente.run_rut).first()
+                            person = Persona.query.filter_by(
+                                run_rut=newAdquiriente.run_rut).first()
                             if person is None:
-                                person = Persona(run_rut=newAdquiriente.run_rut)
+                                person = Persona(
+                                    run_rut=newAdquiriente.run_rut)
                                 db.session.add(person)
                                 db.session.commit()
-                        
+
                         if 'porcDerecho' in singleAdquiriente.keys():
                             newAdquiriente.porc_derecho = singleAdquiriente['porcDerecho']
 
