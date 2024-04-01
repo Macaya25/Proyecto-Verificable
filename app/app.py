@@ -1,10 +1,10 @@
 import os
 import logging
 import json
-from flask import Flask, render_template, redirect, url_for, flash
+from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_wtf.csrf import CSRFProtect
 from forms import FormularioForm, JSONForm
-from models import db, Formulario, Persona, Enajenante, Adquirente
+from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario
 from tools import analyze_json
 from dotenv import load_dotenv
 
@@ -106,9 +106,19 @@ def form_details_route(n_atencion):
     return render_template('form_details.html', formulario=formulario)
 
 
-@app.route('/multipropietario')
+@app.route('/multipropietario', methods=['GET', 'POST'])
 def multipropietario_route():
-    return render_template('multipropietario.html')
+    if request.method == 'POST':
+        comuna = request.form.get('comuna')
+        manzana = request.form.get('manzana')
+        predio = request.form.get('predio')
+        año = request.form.get('año')
+
+        results = Multipropietario.query.filter_by(
+            comuna=comuna, manzana=manzana, predio=predio, año=año).all()
+        return render_template('multipropietario.html', search_results=results)
+
+    return render_template('multipropietario.html', search_results=None)
 
 
 if __name__ == '__main__':
