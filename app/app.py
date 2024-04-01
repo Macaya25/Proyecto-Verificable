@@ -106,9 +106,9 @@ def form_details_route(n_atencion):
     return render_template('form_details.html', formulario=formulario)
 
 
-@app.route('/multiformulario')
-def multiformulario_route():
-    return render_template('multiformulario.html')
+@app.route('/multipropietario')
+def multipropietario_route():
+    return render_template('multipropietario.html')
 
 
 if __name__ == '__main__':
