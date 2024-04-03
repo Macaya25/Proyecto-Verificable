@@ -42,19 +42,20 @@ def form_route():
             num_inscripcion=form.num_inscripcion.data
         )
         db.session.add(new_formulario)
-
-        for enajenante_data in form.enajenantes.data:
-            enajenante_persona = Persona.query.get(enajenante_data['run_rut'])
-            if not enajenante_persona:
-                enajenante_persona = Persona(
-                    run_rut=enajenante_data['run_rut'])
-                db.session.add(enajenante_persona)
-            new_enajenante = Enajenante(
-                porc_derecho=enajenante_data['porc_derecho'],
-                persona=enajenante_persona,
-                formulario=new_formulario
-            )
-            db.session.add(new_enajenante)
+        
+        if form.cne.data == '1':
+            for enajenante_data in form.enajenantes.data:
+                enajenante_persona = Persona.query.get(enajenante_data['run_rut'])
+                if not enajenante_persona:
+                    enajenante_persona = Persona(
+                        run_rut=enajenante_data['run_rut'])
+                    db.session.add(enajenante_persona)
+                new_enajenante = Enajenante(
+                    porc_derecho=enajenante_data['porc_derecho'],
+                    persona=enajenante_persona,
+                    formulario=new_formulario
+                )
+                db.session.add(new_enajenante)
 
         for adquirente_data in form.adquirentes.data:
             adquirente_persona = Persona.query.get(adquirente_data['run_rut'])
@@ -71,7 +72,7 @@ def form_route():
 
         db.session.commit()
         flash('Formulario registrado con éxito!')
-        return redirect(url_for('index'))
+        return redirect(url_for('index_route'))
 
     return render_template('form.html', form=form)
 
