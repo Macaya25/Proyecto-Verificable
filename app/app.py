@@ -4,9 +4,10 @@ import json
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_wtf.csrf import CSRFProtect
 from forms import FormularioForm, JSONForm
-from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario
+from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario, Comuna
 from tools import analyze_json
 from dotenv import load_dotenv
+from flask import jsonify
 
 
 load_dotenv()
@@ -31,7 +32,7 @@ def index_route() -> str:
 @app.route('/form', methods=['GET', 'POST'])
 def form_route():
     form = FormularioForm()
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         new_formulario = Formulario(
             cne=form.cne.data,
             comuna=form.comuna.data,
@@ -71,7 +72,10 @@ def form_route():
 
         db.session.commit()
         flash('Formulario registrado con éxito!')
-        return redirect(url_for('index'))
+        return redirect(url_for('index_route'))
+    else:
+        if form.region.data:
+            form.comuna.choices = [('', 'Seleccione Comuna')] + [(comuna.id, comuna.descripcion) for comuna in Comuna.query.filter_by(id_region=form.region.data).order_by('descripcion')]
 
     return render_template('form.html', form=form)
 
@@ -120,6 +124,10 @@ def multipropietario_route():
 
     return render_template('multipropietario.html', search_results=None)
 
+@app.route('/comunas/<int:region_id>')
+def get_comunas(region_id):
+    comunas = Comuna.query.filter_by(id_region=region_id).order_by('descripcion').all()
+    return jsonify([{'id': comuna.id, 'descripcion': comuna.descripcion} for comuna in comunas])
 
 if __name__ == '__main__':
     with app.app_context():
