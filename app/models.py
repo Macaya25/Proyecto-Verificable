@@ -12,7 +12,7 @@ class Formulario(db.Model):
     n_atencion = db.Column(db.Integer, primary_key=True,
                            autoincrement=True, index=True)
     cne = db.Column(db.Integer)
-    comuna = db.Column(db.String(50), index=True)
+    comuna = db.Column(db.Integer, db.ForeignKey('comuna.id'), nullable=False)
     manzana = db.Column(db.String(50), index=True)
     predio = db.Column(db.String(50), index=True)
     fojas = db.Column(db.Integer)

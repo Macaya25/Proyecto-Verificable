@@ -4,9 +4,10 @@ import json
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_wtf.csrf import CSRFProtect
 from forms import FormularioForm, JSONForm
-from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario, CNE
+from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario, CNE, Comuna
 from tools import analyze_json
 from dotenv import load_dotenv
+from flask import jsonify
 
 
 
@@ -32,7 +33,7 @@ def index_route() -> str:
 @app.route('/form', methods=['GET', 'POST'])
 def form_route():
     form = FormularioForm()
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         new_formulario = Formulario(
             cne=form.cne.data,
             comuna=form.comuna.data,
@@ -168,6 +169,10 @@ def multipropietario_route():
         search_results = Multipropietario.query.all()
         return render_template('multipropietario.html', form=form, search_results=search_results)
 
+@app.route('/comunas/<int:region_id>')
+def get_comunas(region_id):
+    comunas = Comuna.query.filter_by(id_region=region_id).order_by('descripcion').all()
+    return jsonify([{'id': comuna.id, 'descripcion': comuna.descripcion} for comuna in comunas])
 
 if __name__ == '__main__':
     with app.app_context():

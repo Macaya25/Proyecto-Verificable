@@ -3,8 +3,11 @@ from wtforms import (StringField, IntegerField, SubmitField, DateField, FieldLis
                      SelectField, FileField)
 from wtforms.validators import DataRequired, NumberRange, InputRequired
 from wtforms.widgets import HiddenInput
-from models import CNE
+from models import CNE, Region, Comuna
 
+
+def coerce_for_select_field(value):
+    return int(value) if value is not None and value != '' else None
 
 class PersonaForm(FlaskForm):
     run_rut = StringField('RUN/RUT')
@@ -12,7 +15,8 @@ class PersonaForm(FlaskForm):
 
 class FormularioForm(FlaskForm):
     cne = SelectField('CNE', coerce=int, validators=[DataRequired()])
-    comuna = StringField('Comuna', validators=[DataRequired()])
+    region = SelectField('Región', coerce=int, validators=[DataRequired()])
+    comuna = SelectField('Comuna', coerce=int, validators=[DataRequired()])
     manzana = StringField('Manzana', validators=[DataRequired()])
     predio = StringField('Predio', validators=[DataRequired()])
     fojas = IntegerField('Fojas', validators=[DataRequired()])
@@ -31,6 +35,13 @@ class FormularioForm(FlaskForm):
             self.enajenantes[0].form.id = 1
         else:
             self.enajenantes[0].form.id = None                          
+        self.region.choices = [('', 'Seleccione Región')] + [(region.id, region.descripcion) for region in Region.query.order_by('descripcion')]
+        self.comuna.choices = [('', 'Seleccione Comuna')]
+
+        self.cne.coerce = coerce_for_select_field
+        self.region.coerce = coerce_for_select_field
+        self.comuna.coerce = coerce_for_select_field
+
 
 class JSONForm(FlaskForm):
     file = FileField('File', validators=[InputRequired()])

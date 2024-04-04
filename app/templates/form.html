@@ -14,8 +14,12 @@
                     {{ form.cne(class="form-control", id="cne-select") }}
                 </div>
                 <div class="form-group">
+                    <label for="region">Región</label>
+                    {{ form.region(class="form-control", id="region-select", onchange="updateComunas()") }}
+                </div>
+                <div class="form-group">
                     <label for="comuna">Comuna</label>
-                    {{ form.comuna(class="form-control") }}
+                    {{ form.comuna(class="form-control", id="comuna-select") }}
                 </div>
                 <div class="form-group">
                     <label for="manzana">Manzana</label>
@@ -129,6 +133,20 @@
     }
     document.getElementById('cne-select').addEventListener('change', toggleEnajenantesVisibility);
     toggleEnajenantesVisibility();
+
+    function updateComunas() {
+        var regionId = document.getElementById('region-select').value;
+        var comunaSelect = document.getElementById('comuna-select');
+        comunaSelect.innerHTML = '';
+        fetch('/comunas/' + regionId).then(function(response) {
+            response.json().then(function(data) {
+                data.forEach(function(comuna) {
+                    var option = new Option(comuna.descripcion, comuna.id);
+                    comunaSelect.add(option);
+                });
+            });
+        });
+    }
 </script>
 
 {% endblock %}
