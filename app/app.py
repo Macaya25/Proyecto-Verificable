@@ -1,7 +1,7 @@
 import os
 import logging
 import json
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_wtf.csrf import CSRFProtect
 from forms import FormularioForm, JSONForm
 from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario, CNE
@@ -15,7 +15,7 @@ secret_key = os.getenv('SECRET_KEY')
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
-app.config['SECRET_KEY'] = secret_key
+app.config['SECRET_KEY'] =  os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 csrf = CSRFProtect(app)
 db.init_app(app)
@@ -147,26 +147,26 @@ def obtener_descripcion_cne(cne_id):
     cne = CNE.query.filter_by(id=cne_id).first()
     return cne.descripcion if cne else "Descripción no encontrada"
 
-
 @app.route('/multipropietario', methods=['GET', 'POST'])
 def multipropietario_route():
     form = FormularioForm()
     search_results = []
 
     if request.method == 'POST' and form.validate_on_submit():
+        app.logger.info('Formulario recibido: %s', form.data)  # Imprimir el contenido del formulario
+
         comuna = form.comuna.data
         manzana = form.manzana.data
         predio = form.predio.data
-        año = form.fecha_inscripcion
+        año = form.fecha_inscripcion.data.year
 
         search_results = Multipropietario.query.filter_by(
             comuna=comuna, manzana=manzana, predio=predio).filter(Multipropietario.ano_inscripcion >= año).all()
-        print("hola")
+
         return render_template('multipropietario.html', form=form, search_results=search_results)
     else:
         search_results = Multipropietario.query.all()
-        return render_template('multipropietario.html',form = form, search_results=search_results)
-
+        return render_template('multipropietario.html', form=form, search_results=search_results)
 
 
 if __name__ == '__main__':
