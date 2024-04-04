@@ -46,7 +46,7 @@ def form_route():
         )
         db.session.add(new_formulario)
 
-        if form.cne.data != '99':
+        if form.cne.data != 99:
             for enajenante_data in form.enajenantes.data:
                 enajenante_persona = Persona.query.get(enajenante_data['run_rut'])
                 if not enajenante_persona:
@@ -83,7 +83,7 @@ def form_route():
 def new_multipropietarios(form):
     for adquiriente in form.adquirentes.data:
         new_multipropietario(form, adquiriente['run_rut'], adquiriente['porc_derecho'])
-    if form.cne.data == '99':
+    if form.cne.data != 99 and 'enajenantes' in form:
         for enajenante in form.enajenantes.data:
             new_multipropietario(form, enajenante['run_rut'], enajenante['porc_derecho'])
 
@@ -98,7 +98,7 @@ def new_multipropietario(form, rut, derecho):
     ).filter(Multipropietario.ano_vigencia_inicial >= año_vigencia_inicial).first()
 
     if multipropietario_anterior:
-        año_vigencia_final = multipropietario_anterior.año_vigencia_inicial
+        año_vigencia_final = multipropietario_anterior.ano_vigencia_inicial
 
     new_multipropietario = Multipropietario(
         comuna=form.comuna.data,
