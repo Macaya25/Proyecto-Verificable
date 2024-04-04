@@ -4,45 +4,32 @@
 <div class="container mt-5">
     <h1>Busqueda Multipropietario</h1>
     <hr/>
-    <table class="table table-striped mt-3">
-        <thead>
-            <tr>
-                <th>Comuna</th>
-                <th>Manzana</th>
-                <th>Predio</th>
-                <th>Año</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <form class="d-flex" role="search">
-                        <input class="form-control me-2" type="search" placeholder="Comuna" aria-label="Search">
-                    </form>
-                </td>
-                <td>
-                    <form class="d-flex" role="search">
-                        <input class="form-control me-2" type="search" placeholder="Manzana" aria-label="Search">
-                    </form>
-                </td>
-                <td>
-                    <form class="d-flex" role="search">
-                        <input class="form-control me-2" type="search" placeholder="Predio" aria-label="Search">
-                    </form>
-                </td>
-                <td>
-                    <form class="d-flex" role="search">
-                        <input class="form-control me-2" type="search" placeholder="Año" aria-label="Search">
-                    </form>
-                </td>
-                <td>
-                    <button class="btn btn-outline-success" type="submit">Search</button>
-                </td>
-            </tr>
-            
-        </tbody>
-        
-    </table>
+    <form method="POST" action="/multipropietario">
+        {{ form.hidden_tag() }}
+        {{ form.csrf_token }}
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>Comuna</th>
+                    <th>Manzana</th>
+                    <th>Predio</th>
+                    <th>Año</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <td>{{ form.comuna }}</td>
+                        <td>{{ form.manzana }}</td>
+                        <td>{{ form.predio }}</td>
+                        <td>{{ form.fecha_inscripcion}}</td>
+                        <td>
+                            <button class="btn btn-outline-success" type="submit">Search</button>
+                        </td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
 
     <br/>
     <br/>
@@ -64,13 +51,21 @@
         </thead>
         <tbody>
             {% if search_results %}
-                {% for result in search_results %}
-                <tr>
-                    <td>{{ result.comuna }}</td>
-                    <td>{{ result.manzana }}</td>
-                    <td>{{ result.predio }}</td>
-                </tr>
-                {% endfor %}
+            {% for result in search_results %}
+            <tr>
+                <td>{{ result.comuna }}</td>
+                <td>{{ result.manzana }}</td>
+                <td>{{ result.predio }}</td>
+                <td>{{ result.run_rut }}</td>
+                <td>{{ result.porc_derechos }}</td>
+                <td>{{ result.fecha_inscripcion }}</td>
+                <td>{{ result.ano_inscripcion }}</td>
+                <td>{{ result.num_inscripcion }}</td>
+                <td>{{ result.ano_vigencia_inicial }}</td>
+                <td>{{ result.ano_vigencia_final }}</td>
+            </tr>
+            {% endfor %}
+            
             {% else %}
                 <tr>
                     <td colspan="10" style="text-align: center;">No se encontraron resultados.</td>

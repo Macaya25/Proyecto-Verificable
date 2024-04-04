@@ -6,7 +6,7 @@
     <div class="card mt-4">
         <div class="card-body">
             <h5 class="card-title">Información General</h5>
-            <p class="card-text"><strong>CNE:</strong> {{ formulario.cne }}</p>
+            <p class="card-text"><strong>CNE:</strong> {{ descripcion_cne }}</p>
             <p class="card-text"><strong>Comuna:</strong> {{ formulario.comuna }}</p>
             <p class="card-text"><strong>Manzana:</strong> {{ formulario.manzana }}</p>
             <p class="card-text"><strong>Predio:</strong> {{ formulario.predio }}</p>
@@ -16,6 +16,7 @@
         </div>
     </div>
 
+    {% if formulario.cne == 1 %}
     <h2 class="mt-4">Enajenantes</h2>
     {% for enajenante in formulario.enajenantes %}
         <div class="card mt-2">
@@ -25,6 +26,8 @@
             </div>
         </div>
     {% endfor %}
+{% endif %}
+
 
     <h2 class="mt-4">Adquirentes</h2>
     {% for adquirente in formulario.adquirentes %}
