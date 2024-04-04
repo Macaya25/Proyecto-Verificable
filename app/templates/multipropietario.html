@@ -4,50 +4,19 @@
 <div class="container mt-5">
     <h1>Busqueda Multipropietario</h1>
     <hr/>
-    <table class="table table-striped mt-3">
-        <thead>
-            <tr>
-                <th>Comuna</th>
-                <th>Manzana</th>
-                <th>Predio</th>
-                <th>Año</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <form class="d-flex" role="search">
-                        <input class="form-control me-2" type="search" placeholder="Comuna" aria-label="Search">
-                    </form>
-                </td>
-                <td>
-                    <form class="d-flex" role="search">
-                        <input class="form-control me-2" type="search" placeholder="Manzana" aria-label="Search">
-                    </form>
-                </td>
-                <td>
-                    <form class="d-flex" role="search">
-                        <input class="form-control me-2" type="search" placeholder="Predio" aria-label="Search">
-                    </form>
-                </td>
-                <td>
-                    <form class="d-flex" role="search">
-                        <input class="form-control me-2" type="search" placeholder="Año" aria-label="Search">
-                    </form>
-                </td>
-                <td>
-                    <button class="btn btn-outline-success" type="submit">Search</button>
-                </td>
-            </tr>
-            
-        </tbody>
-        
-    </table>
+    <form method="POST" action="/multipropietario" id="searchForm">
+        {{ form.csrf_token }}
+        <input type="text" id="comuna" name="comuna" placeholder="Comuna">
+        <input type="text" id="manzana" name="manzana" placeholder="Manzana">
+        <input type="text" id="predio" name="predio" placeholder="Predio">
+        <input type="text" id="ano" name="ano" placeholder="Año">
+        <button id="searchBtn" class="btn btn-outline-success" type="submit">Search</button>
+    </form>
 
     <br/>
     <br/>
     <h1>Resultados</h1>
-    <table class="table table-striped mt-3">
+    <table class="table table-striped mt-3" id="resultsTable">
         <thead>
             <tr>
                 <th>Comuna</th>
@@ -62,21 +31,63 @@
                 <th>Año Vigencia Final</th>
             </tr>
         </thead>
-        <tbody>
-            {% if search_results %}
-                {% for result in search_results %}
-                <tr>
-                    <td>{{ result.comuna }}</td>
-                    <td>{{ result.manzana }}</td>
-                    <td>{{ result.predio }}</td>
-                </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="10" style="text-align: center;">No se encontraron resultados.</td>
-                </tr>
-            {% endif %}
+        <tbody id="resultsBody">
         </tbody>
     </table>
 </div>
-{% endblock%}
+
+<script>
+document.getElementById("searchForm").addEventListener("submit", function(event) {
+    event.preventDefault(); // Evitar el envío del formulario por defecto
+
+    var comuna = document.getElementById("comuna").value;
+    var manzana = document.getElementById("manzana").value;
+    var predio = document.getElementById("predio").value;
+    var año = document.getElementById("ano").value;
+
+    // Enviar los datos del formulario al servidor utilizando AJAX
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/multipropietario", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status === 200) {
+                // Procesar los resultados de la búsqueda recibidos del servidor
+                var searchResults = JSON.parse(xhr.responseText).search_results;
+                updateResultsTable(searchResults);
+            } else {
+                console.error('Error al realizar la solicitud: ', xhr.status);
+            }
+        }
+    };
+    xhr.send("comuna=" + encodeURIComponent(comuna) + "&manzana=" + encodeURIComponent(manzana) + "&predio=" + encodeURIComponent(predio) + "&ano=" + encodeURIComponent(año));
+});
+
+function updateResultsTable(results) {
+    var tableBody = document.getElementById("resultsBody");
+    tableBody.innerHTML = ""; // Limpiar el contenido actual de la tabla
+    if (results && results.length > 0) {
+        results.forEach(function(result) {
+            var row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${result.comuna}</td>
+                <td>${result.manzana}</td>
+                <td>${result.predio}</td>
+                <td>${result.run_rut}</td>
+                <td>${result.porc_derechos}</td>
+                <td>${result.fecha_inscripcion}</td>
+                <td>${result.ano_inscripcion}</td>
+                <td>${result.num_inscripcion}</td>
+                <td>${result.ano_vigencia_inicial}</td>
+                <td>${result.ano_vigencia_final}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } else {
+        var noResultsRow = document.createElement("tr");
+        noResultsRow.innerHTML = '<td colspan="10" style="text-align: center;">No se encontraron resultados.</td>';
+        tableBody.appendChild(noResultsRow);
+    }
+}
+</script>
+{% endblock %}

@@ -47,16 +47,6 @@
                 <div id="enajenantes-section">
                     <h2>Enajenantes</h2>
                     <div id="enajenantes-container">
-                        {% for enajenante in form.enajenantes %}
-                            <div class="form-group enajenante-group">
-                                {{ enajenante.run_rut.label }} {{ enajenante.run_rut(class="form-control mb-1") }}
-                                {{ enajenante.porc_derecho.label }} {{ enajenante.porc_derecho(class="form-control mb-1") }}
-                                {% if loop.index > 1 %}
-                                    <button type="button" class="btn btn-danger btn-sm mb-3" onclick="removeEnajenante(this)">Eliminar</button>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                        <button type="button" class="btn btn-info" onclick="addEnajenante()">Añadir Enajenante</button>
                     </div>
                 </div>
 
@@ -111,6 +101,16 @@
         `;
         container.appendChild(newGroup);
     }
+    function addEnajenanteInicial(){
+        var container = document.getElementById('enajenantes-container');
+        var newGroup = document.createElement('div');
+        newGroup.classList.add('form-group', 'enajenante-group', 'mt-3');
+        newGroup.innerHTML = `
+            <input type="text" name="enajenantes-{{ form.enajenantes|length }}-run_rut" class="form-control mb-1" placeholder="RUN/RUT" required>
+            <input type="number" name="enajenantes-{{ form.enajenantes|length }}-porc_derecho" class="form-control mb-1" placeholder="% Derecho" required>
+            <button type="button" class="btn btn-info" onclick="addEnajenante()">Añadir Enajenante</button>        `;
+        container.appendChild(newGroup);
+    }
 
     function removeAdquirente(button) {
         var group = button.closest('.adquirente-group');
@@ -119,11 +119,16 @@
 
     function toggleEnajenantesVisibility() {
         var cneField = document.getElementById('cne-select');
-        var enajenantesContainer = document.getElementById('enajenantes-section');
-        if (cneField.value === '99') { 
-            enajenantesContainer.style.display = 'none';
+        var enajenantesSection = document.getElementById('enajenantes-section');
+        var enajenantesContainer = document.getElementById('enajenantes-container');
+        if (cneField.value === '1') { 
+            enajenantesSection.style.display = "block"; 
+            addEnajenanteInicial();
+        enajenantesSection.appendChild(newGroup);
+            
         } else {
-            enajenantesContainer.style.display = 'block';
+            enajenantesSection.style.display = "none"; 
+            enajenantesContainer.innerHTML = "";
         }
     }
     document.getElementById('cne-select').addEventListener('change', toggleEnajenantesVisibility);
