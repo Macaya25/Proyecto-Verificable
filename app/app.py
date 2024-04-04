@@ -48,7 +48,7 @@ def form_route():
 
         if form.cne.data != 99:
             for enajenante_data in form.enajenantes.data:
-                enajenante_persona = Persona.query.get(enajenante_data['run_rut'])
+                enajenante_persona = db.session.get(Persona, enajenante_data['run_rut'])
                 if not enajenante_persona:
                     enajenante_persona = Persona(run_rut=enajenante_data['run_rut'])
                     db.session.add(enajenante_persona)
@@ -60,7 +60,7 @@ def form_route():
                 db.session.add(new_enajenante)
 
         for adquirente_data in form.adquirentes.data:
-            adquirente_persona = Persona.query.get(adquirente_data['run_rut'])
+            adquirente_persona = db.session.get(Persona, adquirente_data['run_rut'])
             if not adquirente_persona:
                 adquirente_persona = Persona(run_rut=adquirente_data['run_rut'])
                 db.session.add(adquirente_persona)
