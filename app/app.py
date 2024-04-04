@@ -33,6 +33,7 @@ def index_route() -> str:
 @app.route('/form', methods=['GET', 'POST'])
 def form_route():
     form = FormularioForm()
+    form.comuna.choices = [(comuna.id, comuna.descripcion) for comuna in Comuna.query.order_by('descripcion')]
     if request.method == 'POST' and form.validate_on_submit():
         new_formulario = Formulario(
             cne=form.cne.data,
@@ -44,13 +45,12 @@ def form_route():
             num_inscripcion=form.num_inscripcion.data
         )
         db.session.add(new_formulario)
-        
-        if form.cne.data == '1':
+
+        if form.cne.data != '99':
             for enajenante_data in form.enajenantes.data:
                 enajenante_persona = Persona.query.get(enajenante_data['run_rut'])
                 if not enajenante_persona:
-                    enajenante_persona = Persona(
-                        run_rut=enajenante_data['run_rut'])
+                    enajenante_persona = Persona(run_rut=enajenante_data['run_rut'])
                     db.session.add(enajenante_persona)
                 new_enajenante = Enajenante(
                     porc_derecho=enajenante_data['porc_derecho'],
@@ -62,8 +62,7 @@ def form_route():
         for adquirente_data in form.adquirentes.data:
             adquirente_persona = Persona.query.get(adquirente_data['run_rut'])
             if not adquirente_persona:
-                adquirente_persona = Persona(
-                    run_rut=adquirente_data['run_rut'])
+                adquirente_persona = Persona(run_rut=adquirente_data['run_rut'])
                 db.session.add(adquirente_persona)
             new_adquirente = Adquirente(
                 porc_derecho=adquirente_data['porc_derecho'],
@@ -71,17 +70,20 @@ def form_route():
                 formulario=new_formulario
             )
             db.session.add(new_adquirente)
+
         new_multipropietarios(form)
         db.session.commit()
         flash('Formulario registrado con éxito!')
-        return redirect(url_for('index_route'))
+        return redirect(url_for('forms_route'))
+    else:
+        print(form.errors)
 
     return render_template('form.html', form=form)
 
 def new_multipropietarios(form):
     for adquiriente in form.adquirentes.data:
         new_multipropietario(form, adquiriente['run_rut'], adquiriente['porc_derecho'])
-    if form.cne.data == '1':
+    if form.cne.data == '99':
         for enajenante in form.enajenantes.data:
             new_multipropietario(form, enajenante['run_rut'], enajenante['porc_derecho'])
 

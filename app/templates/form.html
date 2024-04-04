@@ -19,7 +19,12 @@
                 </div>
                 <div class="form-group">
                     <label for="comuna">Comuna</label>
-                    {{ form.comuna(class="form-control", id="comuna-select") }}
+                    <select class="form-control" id="comuna-select" name="comuna" {% if not form.region.data %}disabled{% endif %}>
+                        <option value="">Seleccione Comuna</option>
+                        {% for id, descripcion in form.comuna.choices %}
+                            <option value="{{ id }}" {% if form.comuna.data == id %}selected{% endif %}>{{ descripcion }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="manzana">Manzana</label>
@@ -47,24 +52,35 @@
                 <div id="enajenantes-section">
                     <h2>Enajenantes</h2>
                     <div id="enajenantes-container">
+                        {% for enajenante in form.enajenantes %}
+                            <div class="form-group enajenante-group">
+                                {{ enajenante.run_rut.label }} {{ enajenante.run_rut(class="form-control mb-1") }}
+                                {{ enajenante.porc_derecho.label }} {{ enajenante.porc_derecho(class="form-control mb-1") }}
+                                {% if loop.index > 1 %}
+                                    <button type="button" class="btn btn-danger btn-sm mb-3" onclick="removeEnajenante(this)">Eliminar</button>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="button" class="btn btn-info" onclick="addEnajenante()">Añadir Enajenante</button>
                     </div>
                 </div>
-
-                <h2>Adquirentes</h2>
+            
                 <div id="adquirentes-container">
-                    {% for adquirente in form.adquirentes %}
-                        <div class="form-group adquirente-group">
-                            {{ adquirente.run_rut.label }} {{ adquirente.run_rut(class="form-control mb-1") }}
-                            {{ adquirente.porc_derecho.label }} {{ adquirente.porc_derecho(class="form-control mb-1") }}
-                            {% if loop.index > 1 %}
-                                <button type="button" class="btn btn-danger btn-sm mb-3" onclick="removeAdquirente(this)">Eliminar</button>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                    <button type="button" class="btn btn-info" onclick="addAdquirente()">Añadir Adquirente</button>
+                    <h2>Adquirentes</h2>
+                    <div id="adquirentes-container">
+                        {% for adquirente in form.adquirentes %}
+                            <div class="form-group adquirente-group">
+                                {{ adquirente.run_rut.label }} {{ adquirente.run_rut(class="form-control mb-1") }}
+                                {{ adquirente.porc_derecho.label }} {{ adquirente.porc_derecho(class="form-control mb-1") }}
+                                {% if loop.index > 1 %}
+                                    <button type="button" class="btn btn-danger btn-sm mb-3" onclick="removeAdquirente(this)">Eliminar</button>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="button" class="btn btn-info" onclick="addAdquirente()">Añadir Adquirente</button>
+                    </div>
                 </div>
             </div>
-        </div>
 
         <div class="text-center mt-4">
             {{ form.submit(class="btn btn-primary") }}
@@ -78,8 +94,8 @@
         var newGroup = document.createElement('div');
         newGroup.classList.add('form-group', 'enajenante-group', 'mt-3');
         newGroup.innerHTML = `
-            <input type="text" name="enajenantes-{{ form.enajenantes|length }}-run_rut" class="form-control mb-1" placeholder="RUN/RUT" required>
-            <input type="number" name="enajenantes-{{ form.enajenantes|length }}-porc_derecho" class="form-control mb-1" placeholder="% Derecho" required>
+            {{ form.enajenantes[0].run_rut(class="form-control mb-1", placeholder="RUN/RUT", required=True) }}
+            {{ form.enajenantes[0].porc_derecho(class="form-control mb-1", placeholder="% Derecho", required=True) }}
             <button type="button" class="btn btn-danger btn-sm mb-2" onclick="removeEnajenante(this)">Eliminar</button>
         `;
         container.appendChild(newGroup);
@@ -95,20 +111,10 @@
         var newGroup = document.createElement('div');
         newGroup.classList.add('form-group', 'adquirente-group', 'mt-3');
         newGroup.innerHTML = `
-            <input type="text" name="adquirentes-{{ form.adquirentes|length }}-run_rut" class="form-control mb-1" placeholder="RUN/RUT" required>
-            <input type="number" name="adquirentes-{{ form.adquirentes|length }}-porc_derecho" class="form-control mb-1" placeholder="% Derecho" required>
+            {{ form.adquirentes[0].run_rut(class="form-control mb-1", placeholder="RUN/RUT", required=True) }}
+            {{ form.adquirentes[0].porc_derecho(class="form-control mb-1", placeholder="% Derecho", required=True) }}
             <button type="button" class="btn btn-danger btn-sm mb-2" onclick="removeAdquirente(this)">Eliminar</button>
         `;
-        container.appendChild(newGroup);
-    }
-    function addEnajenanteInicial(){
-        var container = document.getElementById('enajenantes-container');
-        var newGroup = document.createElement('div');
-        newGroup.classList.add('form-group', 'enajenante-group', 'mt-3');
-        newGroup.innerHTML = `
-            <input type="text" name="enajenantes-{{ form.enajenantes|length }}-run_rut" class="form-control mb-1" placeholder="RUN/RUT" required>
-            <input type="number" name="enajenantes-{{ form.enajenantes|length }}-porc_derecho" class="form-control mb-1" placeholder="% Derecho" required>
-            <button type="button" class="btn btn-info" onclick="addEnajenante()">Añadir Enajenante</button>        `;
         container.appendChild(newGroup);
     }
 
@@ -117,36 +123,64 @@
         group.remove();
     }
 
-    function toggleEnajenantesVisibility() {
+    function toggleSectionsVisibility() {
         var cneField = document.getElementById('cne-select');
         var enajenantesSection = document.getElementById('enajenantes-section');
-        var enajenantesContainer = document.getElementById('enajenantes-container');
-        if (cneField.value === '1') { 
-            enajenantesSection.style.display = "block"; 
-            addEnajenanteInicial();
-        enajenantesSection.appendChild(newGroup);
-            
-        } else {
-            enajenantesSection.style.display = "none"; 
-            enajenantesContainer.innerHTML = "";
+        var adquirentesSection = document.getElementById('adquirentes-container');
+    
+        switch (cneField.value) {
+            case '8':
+                enajenantesSection.style.display = "block";
+                adquirentesSection.style.display = "block";
+                break;
+            case '99':
+                enajenantesSection.style.display = "none";
+                adquirentesSection.style.display = "block";
+                break;
+            default:
+                enajenantesSection.style.display = "none";
+                adquirentesSection.style.display = "none";
+                break;
         }
     }
-    document.getElementById('cne-select').addEventListener('change', toggleEnajenantesVisibility);
-    toggleEnajenantesVisibility();
+    document.getElementById('cne-select').addEventListener('change', toggleSectionsVisibility);
+    toggleSectionsVisibility();
 
     function updateComunas() {
         var regionId = document.getElementById('region-select').value;
         var comunaSelect = document.getElementById('comuna-select');
         comunaSelect.innerHTML = '';
-        fetch('/comunas/' + regionId).then(function(response) {
-            response.json().then(function(data) {
-                data.forEach(function(comuna) {
-                    var option = new Option(comuna.descripcion, comuna.id);
-                    comunaSelect.add(option);
+    
+        if (regionId !== '') {
+            fetch('/comunas/' + regionId).then(function(response) {
+                response.json().then(function(data) {
+                    var defaultOption = new Option('Seleccione Comuna', '');
+                    comunaSelect.add(defaultOption);
+                    data.forEach(function(comuna) {
+                        var option = new Option(comuna.descripcion, comuna.id);
+                        comunaSelect.add(option);
+                    });
                 });
             });
-        });
+        } else {
+            var defaultOption = new Option('Seleccione Comuna', '');
+            comunaSelect.add(defaultOption);
+        }
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var regionSelect = document.getElementById('region-select');
+        var comunaSelect = document.getElementById('comuna-select');
+
+        regionSelect.addEventListener('change', function() {
+            comunaSelect.disabled = !this.value;
+            if (!this.value) {
+                comunaSelect.selectedIndex = 0; 
+            }
+        });
+
+        comunaSelect.disabled = !regionSelect.value;
+    });
 </script>
 
 {% endblock %}

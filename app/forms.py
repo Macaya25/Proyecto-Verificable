@@ -34,13 +34,26 @@ class FormularioForm(FlaskForm):
         if self.cne.data in [1, 'compraventa']:
             self.enajenantes[0].form.id = 1
         else:
-            self.enajenantes[0].form.id = None                          
+            self.enajenantes[0].form.id = None     
+        self.cne.choices = [('', 'Seleccione CNE')] + [(cne.id, cne.descripcion) for cne in CNE.query.all()]                
         self.region.choices = [('', 'Seleccione Región')] + [(region.id, region.descripcion) for region in Region.query.order_by('descripcion')]
         self.comuna.choices = [('', 'Seleccione Comuna')]
 
         self.cne.coerce = coerce_for_select_field
         self.region.coerce = coerce_for_select_field
         self.comuna.coerce = coerce_for_select_field
+
+    def validate(self, **kwargs):
+        is_valid = super(FormularioForm, self).validate()
+
+        if self.cne.data == 99:
+            self.enajenantes.errors.clear()
+            for subform in self.enajenantes:
+                subform.run_rut.data = None
+                subform.porc_derecho.data = None
+            is_valid = True  
+
+        return is_valid
 
 
 class JSONForm(FlaskForm):
