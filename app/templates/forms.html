@@ -29,13 +29,19 @@
             {% for formulario in forms %}
                 <tr>
                     <td>{{ formulario.n_atencion }}</td>
-                    <td>{{ formulario.cne }}</td>
-                    <td>{{ formulario.comuna }}</td>
+                    <td>
+                        {% set cne_obj = cnes.get(formulario.cne) %}
+                        {{ cne_obj.descripcion if cne_obj else formulario.cne }}
+                    </td>
+                    <td>
+                        {% set comuna_obj = comunas.get(formulario.comuna) %}                            
+                        {{ comuna_obj.descripcion if comuna_obj else formulario.comuna }}
+                    </td>
                     <td>{{ formulario.manzana }}</td>
                     <td>{{ formulario.predio }}</td>
                     <td>{{ formulario.fojas }}</td>
 
-                    {% if (formulario.fecha_inscripcion != None) %}
+                    {% if formulario.fecha_inscripcion %}
                         <td>{{ formulario.fecha_inscripcion.strftime('%Y-%m-%d') }}</td>
                     {% else %}
                         <td> No registrada. </td>

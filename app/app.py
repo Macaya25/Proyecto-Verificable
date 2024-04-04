@@ -118,8 +118,9 @@ def new_multipropietario(form, rut, derecho):
 @app.route('/forms')
 def forms_route():
     forms = Formulario.query.all()
-    return render_template('forms.html', forms=forms)
-
+    cnes = {cne.id: cne for cne in CNE.query.all()}
+    comunas = {comuna.id: comuna for comuna in Comuna.query.all()}
+    return render_template('forms.html', forms=forms, cnes=cnes, comunas=comunas)
 
 @app.route('/form/json', methods=['GET', 'POST'])
 def form_json_route():
