@@ -11,33 +11,42 @@
             <p class="card-text"><strong>Manzana:</strong> {{ formulario.manzana }}</p>
             <p class="card-text"><strong>Predio:</strong> {{ formulario.predio }}</p>
             <p class="card-text"><strong>Fojas:</strong> {{ formulario.fojas }}</p>
-            <p class="card-text"><strong>Fecha de Inscripción:</strong> {{ formulario.fecha_inscripcion.strftime('%Y-%m-%d') }}</p>
+            <p class="card-text"><strong>Fecha de Inscripción:</strong> 
+                {% if formulario.fecha_inscripcion %}
+                    {{ formulario.fecha_inscripcion.strftime('%Y-%m-%d') }}
+                {% else %}
+                    Sin fecha de inscripción disponible
+                {% endif %}
+            </p>
             <p class="card-text"><strong>Número de Inscripción:</strong> {{ formulario.num_inscripcion }}</p>
         </div>
     </div>
 
     {% if formulario.cne == 8 %}
-    <h2 class="mt-4">Enajenantes</h2>
-    {% for enajenante in formulario.enajenantes %}
-        <div class="card mt-2">
-            <div class="card-body">
-                <p class="card-text"><strong>RUN/RUT:</strong> {{ enajenante.persona.run_rut }}</p>
-                <p class="card-text"><strong>% Derecho:</strong> {{ enajenante.porc_derecho }}%</p>
-            </div>
-        </div>
-    {% endfor %}
-{% endif %}
+        {% if formulario.enajenantes %}
+            <h2 class="mt-4">Enajenantes</h2>
+            {% for enajenante in formulario.enajenantes %}
+                <div class="card mt-2">
+                    <div class="card-body">
+                        <p class="card-text"><strong>RUN/RUT:</strong> {{ enajenante.persona.run_rut }}</p>
+                        <p class="card-text"><strong>% Derecho:</strong> {{ enajenante.porc_derecho }}%</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endif %}
 
-
-    <h2 class="mt-4">Adquirentes</h2>
-    {% for adquirente in formulario.adquirentes %}
-        <div class="card mt-2">
-            <div class="card-body">
-                <p class="card-text"><strong>RUN/RUT:</strong> {{ adquirente.persona.run_rut }}</p>
-                <p class="card-text"><strong>% Derecho:</strong> {{ adquirente.porc_derecho }}%</p>
+    {% if formulario.adquirentes %}
+        <h2 class="mt-4">Adquirentes</h2>
+        {% for adquirente in formulario.adquirentes %}
+            <div class="card mt-2">
+                <div class="card-body">
+                    <p class="card-text"><strong>RUN/RUT:</strong> {{ adquirente.persona.run_rut }}</p>
+                    <p class="card-text"><strong>% Derecho:</strong> {{ adquirente.porc_derecho }}%</p>
+                </div>
             </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
+    {% endif %}
 
     <a href="{{ url_for('forms_route') }}" class="btn btn-secondary mt-4">Volver a la Lista</a>
 </div>
