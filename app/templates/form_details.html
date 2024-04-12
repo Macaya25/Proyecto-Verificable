@@ -7,7 +7,13 @@
         <div class="card-body">
             <h5 class="card-title">Información General</h5>
             <p class="card-text"><strong>CNE:</strong> {{ descripcion_cne }}</p>
-            <p class="card-text"><strong>Comuna:</strong> {{ formulario.comuna }}</p>
+            <p class="card-text"><strong>Comuna:</strong> 
+                {% if comuna %}
+                    {{ comuna.descripcion }}
+                {% else %}
+                    Código de comuna no encontrado
+                {% endif %}
+            </p>
             <p class="card-text"><strong>Manzana:</strong> {{ formulario.manzana }}</p>
             <p class="card-text"><strong>Predio:</strong> {{ formulario.predio }}</p>
             <p class="card-text"><strong>Fojas:</strong> {{ formulario.fojas }}</p>

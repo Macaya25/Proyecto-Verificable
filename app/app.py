@@ -143,8 +143,9 @@ def form_json_route():
 @app.route('/forms/<int:n_atencion>')
 def form_details_route(n_atencion):
     formulario = Formulario.query.get_or_404(n_atencion)
-    descripcion_cne =obtener_descripcion_cne(formulario.cne)
-    return render_template('form_details.html', formulario=formulario, descripcion_cne = descripcion_cne)
+    comuna_obj = Comuna.query.filter_by(id=formulario.comuna).first()
+    descripcion_cne = obtener_descripcion_cne(formulario.cne)
+    return render_template('form_details.html', formulario=formulario, descripcion_cne=descripcion_cne, comuna=comuna_obj)
 
 def obtener_descripcion_cne(cne_id):
     cne = CNE.query.filter_by(id=cne_id).first()
