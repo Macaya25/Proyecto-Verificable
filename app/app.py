@@ -147,7 +147,6 @@ def form_details_route(n_atencion):
     return render_template('form_details.html', formulario=formulario, descripcion_cne = descripcion_cne)
 
 def obtener_descripcion_cne(cne_id):
-    print(cne_id)
     cne = CNE.query.filter_by(id=cne_id).first()
     return cne.descripcion if cne else "Descripción no encontrada"
 
