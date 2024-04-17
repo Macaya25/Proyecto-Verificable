@@ -2,7 +2,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 # Configuración de la conexión a la base de datos
-engine = create_engine('mysql+pymysql://root:Andres?250297@localhost/db')
+engine = create_engine('mysql+pymysql://root:root@localhost/db')
 
 # Leer los datos del archivo Excel
 df_region = pd.read_excel('regionesComunas.xlsx', sheet_name='regiones')

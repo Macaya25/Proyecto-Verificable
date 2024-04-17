@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 
 # Conexión a la base de datos MySQL
 # Reemplaza 'username', 'password', 'hostname', 'database_name' con tus credenciales
-engine = create_engine('mysql+pymysql://root:Andres?250297@localhost/db')
+engine = create_engine('mysql+pymysql://root:root@localhost/db')
 connection = engine.connect()
 metadata = MetaData()
 
