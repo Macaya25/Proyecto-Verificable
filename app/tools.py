@@ -1,5 +1,5 @@
 from typing import List
-from models import Formulario, Enajenante, Adquirente, Persona
+from models import Formulario, Enajenante, Adquirente, Persona, Comuna
 from flask_sqlalchemy import SQLAlchemy
 from dateutil.parser import parse
 
@@ -33,7 +33,12 @@ def analyze_json(db: SQLAlchemy, JSON):
                 elif key == 'bienRaiz':
                     for k, v in single_form['bienRaiz'].items():
                         if k == 'comuna':
-                            setattr(new_form, 'comuna', v)
+                            comuna_exists = db.session.query(
+                                db.exists().where(Comuna.id == v)).scalar()
+                            if comuna_exists:
+                                setattr(new_form, 'comuna', v)
+                            else:
+                                setattr(new_form, 'comuna', None)
                         elif k == 'manzana':
                             setattr(new_form, 'manzana', v)
                         elif k == 'predio':

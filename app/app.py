@@ -10,13 +10,12 @@ from dotenv import load_dotenv
 from flask import jsonify
 
 
-
 load_dotenv()
 secret_key = os.getenv('SECRET_KEY')
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
-app.config['SECRET_KEY'] =  os.getenv('SECRET_KEY')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 csrf = CSRFProtect(app)
 db.init_app(app)
@@ -33,7 +32,8 @@ def index_route() -> str:
 @app.route('/form', methods=['GET', 'POST'])
 def form_route():
     form = FormularioForm()
-    form.comuna.choices = [(comuna.id, comuna.descripcion) for comuna in Comuna.query.order_by('descripcion')]
+    form.comuna.choices = [(comuna.id, comuna.descripcion)
+                           for comuna in Comuna.query.order_by('descripcion')]
     if request.method == 'POST' and form.validate_on_submit():
         new_formulario = Formulario(
             cne=form.cne.data,
@@ -48,9 +48,11 @@ def form_route():
 
         if form.cne.data != 99:
             for enajenante_data in form.enajenantes.data:
-                enajenante_persona = db.session.get(Persona, enajenante_data['run_rut'])
+                enajenante_persona = db.session.get(
+                    Persona, enajenante_data['run_rut'])
                 if not enajenante_persona:
-                    enajenante_persona = Persona(run_rut=enajenante_data['run_rut'])
+                    enajenante_persona = Persona(
+                        run_rut=enajenante_data['run_rut'])
                     db.session.add(enajenante_persona)
                 new_enajenante = Enajenante(
                     porc_derecho=enajenante_data['porc_derecho'],
@@ -60,9 +62,11 @@ def form_route():
                 db.session.add(new_enajenante)
 
         for adquirente_data in form.adquirentes.data:
-            adquirente_persona = db.session.get(Persona, adquirente_data['run_rut'])
+            adquirente_persona = db.session.get(
+                Persona, adquirente_data['run_rut'])
             if not adquirente_persona:
-                adquirente_persona = Persona(run_rut=adquirente_data['run_rut'])
+                adquirente_persona = Persona(
+                    run_rut=adquirente_data['run_rut'])
                 db.session.add(adquirente_persona)
             new_adquirente = Adquirente(
                 porc_derecho=adquirente_data['porc_derecho'],
@@ -80,12 +84,16 @@ def form_route():
 
     return render_template('form.html', form=form)
 
+
 def new_multipropietarios(form):
     for adquiriente in form.adquirentes.data:
-        new_multipropietario(form, adquiriente['run_rut'], adquiriente['porc_derecho'])
+        new_multipropietario(
+            form, adquiriente['run_rut'], adquiriente['porc_derecho'])
     if form.cne.data != 99 and 'enajenantes' in form:
         for enajenante in form.enajenantes.data:
-            new_multipropietario(form, enajenante['run_rut'], enajenante['porc_derecho'])
+            new_multipropietario(
+                form, enajenante['run_rut'], enajenante['porc_derecho'])
+
 
 def new_multipropietario(form, rut, derecho):
     año_vigencia_inicial = form.fecha_inscripcion.data.year
@@ -115,12 +123,14 @@ def new_multipropietario(form, rut, derecho):
     )
     db.session.add(new_multipropietario)
 
+
 @app.route('/forms')
 def forms_route():
     forms = Formulario.query.all()
     cnes = {cne.id: cne for cne in CNE.query.all()}
     comunas = {comuna.id: comuna for comuna in Comuna.query.all()}
     return render_template('forms.html', forms=forms, cnes=cnes, comunas=comunas)
+
 
 @app.route('/form/json', methods=['GET', 'POST'])
 def form_json_route():
@@ -133,6 +143,7 @@ def form_json_route():
             file = json.loads(file.read().decode('utf-8'))
 
             analyze_json(db, file)
+            return redirect(url_for('forms_route'))
 
         else:
             print('Archivo no es json.')
@@ -147,9 +158,11 @@ def form_details_route(n_atencion):
     descripcion_cne = obtener_descripcion_cne(formulario.cne)
     return render_template('form_details.html', formulario=formulario, descripcion_cne=descripcion_cne, comuna=comuna_obj)
 
+
 def obtener_descripcion_cne(cne_id):
     cne = CNE.query.filter_by(id=cne_id).first()
     return cne.descripcion if cne else "Descripción no encontrada"
+
 
 @app.route('/multipropietario', methods=['GET', 'POST'])
 def multipropietario_route():
@@ -157,7 +170,8 @@ def multipropietario_route():
     search_results = []
 
     if request.method == 'POST' and form.validate_on_submit():
-        app.logger.info('Formulario recibido: %s', form.data)  # Imprimir el contenido del formulario
+        # Imprimir el contenido del formulario
+        app.logger.info('Formulario recibido: %s', form.data)
 
         comuna = form.comuna.data
         manzana = form.manzana.data
@@ -172,10 +186,13 @@ def multipropietario_route():
         search_results = Multipropietario.query.all()
         return render_template('multipropietario.html', form=form, search_results=search_results)
 
+
 @app.route('/comunas/<int:region_id>')
 def get_comunas(region_id):
-    comunas = Comuna.query.filter_by(id_region=region_id).order_by('descripcion').all()
+    comunas = Comuna.query.filter_by(
+        id_region=region_id).order_by('descripcion').all()
     return jsonify([{'id': comuna.id, 'descripcion': comuna.descripcion} for comuna in comunas])
+
 
 if __name__ == '__main__':
     with app.app_context():
