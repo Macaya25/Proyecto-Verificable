@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
+from datetime import date
 
 db = SQLAlchemy()
 
@@ -52,18 +53,18 @@ class Adquirente(db.Model):
 class Multipropietario(db.Model):
     __tablename__ = 'multipropietario'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    comuna = db.Column(db.String(50), index=True)
-    manzana = db.Column(db.String(50), index=True)
-    predio = db.Column(db.String(50), index=True)
-    run_rut = db.Column(db.String(50), db.ForeignKey(
+    comuna: str = db.Column(db.String(50), index=True)
+    manzana: str = db.Column(db.String(50), index=True)
+    predio: str = db.Column(db.String(50), index=True)
+    run_rut: str = db.Column(db.String(50), db.ForeignKey(
         'persona.run_rut'))
-    porc_derechos = db.Column(db.Integer)
-    fojas = db.Column(db.Integer)
-    ano_inscripcion = db.Column(db.Integer)
-    num_inscripcion = db.Column(db.Integer, index=True)
-    fecha_inscripcion = db.Column(db.Date)
-    ano_vigencia_inicial = db.Column(db.Integer)
-    ano_vigencia_final = db.Column(db.Integer)
+    porc_derechos: int = db.Column(db.Integer)
+    fojas: int = db.Column(db.Integer)
+    ano_inscripcion: int = db.Column(db.Integer)
+    num_inscripcion: int = db.Column(db.Integer, index=True)
+    fecha_inscripcion: date = db.Column(db.Date)
+    ano_vigencia_inicial: date = db.Column(db.Integer)
+    ano_vigencia_final: int = db.Column(db.Integer)
 
 
 class CNE(db.Model):

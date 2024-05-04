@@ -1,7 +1,14 @@
 from typing import List
-from models import Formulario, Enajenante, Adquirente, Persona, Comuna
+from enum import Enum
+from models import Formulario, Enajenante, Adquirente, Persona, Comuna, Multipropietario
+from forms import FormularioForm
 from flask_sqlalchemy import SQLAlchemy
 from dateutil.parser import parse
+
+
+class CONSTANTS(Enum):
+    CNE_REGULARIZACION = 99
+    CNE_COMPRAVENTA = 8
 
 
 def analyze_json(db: SQLAlchemy, JSON):
@@ -97,3 +104,29 @@ def analyze_json(db: SQLAlchemy, JSON):
 
     else:
         print('Formato no valido.')
+
+
+def is_empty(lst: list):
+    return not bool(lst)
+
+
+def generate_multipropietario_entry_from_formulario(
+        formulario: FormularioForm,
+        rut: str, derecho: int) -> Multipropietario:
+
+    ano_vigencia_inicial = formulario.fecha_inscripcion.data.year
+    ano_vigencia_final = None
+
+    return Multipropietario(
+        comuna=formulario.comuna.data,
+        manzana=formulario.manzana.data,
+        predio=formulario.predio.data,
+        run_rut=rut,
+        porc_derechos=derecho,
+        fojas=formulario.fojas.data,
+        ano_inscripcion=formulario.fecha_inscripcion.data.year,
+        num_inscripcion=formulario.num_inscripcion.data,
+        fecha_inscripcion=formulario.fecha_inscripcion.data,
+        ano_vigencia_inicial=ano_vigencia_inicial,
+        ano_vigencia_final=ano_vigencia_final
+    )

@@ -5,9 +5,9 @@ from flask import Flask, render_template, redirect, url_for, flash, request, jso
 from flask_wtf.csrf import CSRFProtect
 from forms import FormularioForm, JSONForm
 from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario, CNE, Comuna
-from tools import analyze_json
+from tools import analyze_json, CONSTANTS
 from dotenv import load_dotenv
-from flask import jsonify
+from multipropietario_handler import MultipropietarioHandler
 
 
 load_dotenv()
@@ -22,6 +22,7 @@ db.init_app(app)
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s')
+multiprop_handler = MultipropietarioHandler()
 
 
 @app.route('/')
@@ -46,7 +47,7 @@ def form_route():
         )
         db.session.add(new_formulario)
 
-        if form.cne.data != 99:
+        if form.cne.data == CONSTANTS.CNE_COMPRAVENTA.value:
             for enajenante_data in form.enajenantes.data:
                 enajenante_persona = db.session.get(
                     Persona, enajenante_data['run_rut'])
@@ -75,7 +76,7 @@ def form_route():
             )
             db.session.add(new_adquirente)
 
-        new_multipropietarios(form)
+        multiprop_handler.process_new_form(form)
         db.session.commit()
         flash('Formulario registrado con éxito!')
         return redirect(url_for('forms_route'))
@@ -83,45 +84,6 @@ def form_route():
         print(form.errors)
 
     return render_template('form.html', form=form)
-
-
-def new_multipropietarios(form):
-    for adquiriente in form.adquirentes.data:
-        new_multipropietario(
-            form, adquiriente['run_rut'], adquiriente['porc_derecho'])
-    if form.cne.data != 99 and 'enajenantes' in form:
-        for enajenante in form.enajenantes.data:
-            new_multipropietario(
-                form, enajenante['run_rut'], enajenante['porc_derecho'])
-
-
-def new_multipropietario(form, rut, derecho):
-    año_vigencia_inicial = form.fecha_inscripcion.data.year
-    año_vigencia_final = None
-    # Lógica para determinar el año de vigencia final
-    multipropietario_anterior = Multipropietario.query.filter_by(
-        comuna=form.comuna.data,
-        manzana=form.manzana.data,
-        predio=form.predio.data
-    ).filter(Multipropietario.ano_vigencia_inicial >= año_vigencia_inicial).first()
-
-    if multipropietario_anterior:
-        año_vigencia_final = multipropietario_anterior.ano_vigencia_inicial
-
-    new_multipropietario = Multipropietario(
-        comuna=form.comuna.data,
-        manzana=form.manzana.data,
-        predio=form.predio.data,
-        run_rut=rut,
-        porc_derechos=derecho,
-        fojas=form.fojas.data,
-        ano_inscripcion=form.fecha_inscripcion.data.year,
-        num_inscripcion=form.num_inscripcion.data,
-        fecha_inscripcion=form.fecha_inscripcion.data,
-        ano_vigencia_inicial=año_vigencia_inicial,
-        ano_vigencia_final=año_vigencia_final
-    )
-    db.session.add(new_multipropietario)
 
 
 @app.route('/forms')
