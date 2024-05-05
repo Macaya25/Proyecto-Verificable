@@ -1,9 +1,9 @@
-import json
+from datetime import datetime
 from typing import List
-from models import db, Multipropietario, Formulario, Enajenante
+from models import db, Multipropietario, Formulario, Enajenante, Adquirente
 from forms import FormularioForm
 from tools import (is_empty, CONSTANTS, generate_multipropietario_entry_from_formulario,
-                   generate_form_json_from_multipropietario, analyze_json, FormularioObject)
+                   generate_form_json_from_multipropietario, process_and_save_json_into_db, FormularioObject)
 from sqlalchemy import asc
 from sqlalchemy.orm import Query
 
@@ -96,8 +96,8 @@ class MultipropietarioHandler:
                                                              fecha_inscripcion=form['fechaInscripcion'], num_inscripcion=form['nroInscripcion']).all()
                 for f in forms_to_delete:
                     db.session.delete(f)
-            print(forms)
-            analyze_json(db, forms)
+
+            process_and_save_json_into_db(db, forms)
 
         run_nivel_0()
 
@@ -124,3 +124,44 @@ class MultipropietarioHandler:
                                 num_inscripcion=form.num_inscripcion.data,
                                 enajenantes=parsed_enajenantes,
                                 adquirentes=parsed_adquirentes)
+
+    def convert_json_into_object_list(self, json_form: dict):
+        objects = []
+
+        for form in json_form['F2890']:
+            current_comuna = current_manzana = current_predio = None
+
+            current_cne = form.get('CNE')
+            current_fojas = form.get('fojas')
+
+            try:
+                current_fecha_inscripcion = datetime.strptime(
+                    form.get('fechaInscripcion'), "%Y-%m-%d").date()
+            except ValueError:
+                continue
+
+            current_num_inscripcion = form.get('nroInscripcion')
+            rol = form.get('bienRaiz')
+            if rol:
+                current_comuna = rol.get('comuna')
+                current_manzana = rol.get('manzana')
+                current_predio = rol.get('predio')
+
+            parsed_enajenantes = []
+            if form.get('enajenantes'):
+                for enajenante in form.get('enajenantes'):
+                    parsed_enajenantes.append(Enajenante(run_rut=enajenante.get('RUNRUT'),
+                                                         porc_derecho=enajenante.get('porcDerecho')))
+
+            parsed_adquirentes = []
+            if form.get('adquirentes'):
+                for adquirente in form.get('adquirentes'):
+                    parsed_adquirentes.append(Adquirente(run_rut=adquirente.get('RUNRUT'),
+                                                         porc_derecho=adquirente.get('porcDerecho')))
+
+            current_object = FormularioObject(current_cne, current_comuna, current_manzana,
+                                              current_predio, current_fojas, current_fecha_inscripcion, current_num_inscripcion,
+                                              parsed_enajenantes, parsed_adquirentes)
+            objects.append(current_object)
+
+        return objects

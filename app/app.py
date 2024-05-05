@@ -5,7 +5,7 @@ from flask import Flask, render_template, redirect, url_for, flash, request, jso
 from flask_wtf.csrf import CSRFProtect
 from forms import FormularioForm, JSONForm
 from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario, CNE, Comuna
-from tools import analyze_json, CONSTANTS
+from tools import process_and_save_json_into_db, CONSTANTS
 from dotenv import load_dotenv
 from multipropietario_handler import MultipropietarioHandler
 
@@ -105,7 +105,13 @@ def form_json_route():
         if file.filename.endswith('.json'):
             file = json.loads(file.read().decode('utf-8'))
 
-            analyze_json(db, file)
+            if process_and_save_json_into_db(db, file):
+                converted_forms_list = multiprop_handler.convert_json_into_object_list(
+                    file)
+                for form in converted_forms_list:
+                    multiprop_handler.process_new_form(form)
+                db.session.commit()
+
             return redirect(url_for('forms_route'))
 
         else:

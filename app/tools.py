@@ -27,11 +27,11 @@ class FormularioObject:
         self.adquirentes = adquirentes
 
 
-def analyze_json(db: SQLAlchemy, json_form):
-    def run():
+def process_and_save_json_into_db(db: SQLAlchemy, json_form) -> bool:
+    def run() -> bool:
         if not json_form['F2890']:
             print('Formato no valido.')
-            return
+            return False
 
         for single_form in json_form['F2890']:
             new_form: Formulario = Formulario()
@@ -54,6 +54,7 @@ def analyze_json(db: SQLAlchemy, json_form):
                 db.session.add(single_adquiriente)
 
             db.session.commit()
+        return True
 
     def parse_json_and_set_form(new_form: Formulario, current_form):
         def parse_rol(new_form: Formulario, current_form):
@@ -141,7 +142,8 @@ def analyze_json(db: SQLAlchemy, json_form):
 
             adquirentes.append(new_adquiriente)
         return adquirentes
-    run()
+
+    return run()
 
 
 def is_empty(lst: list):
