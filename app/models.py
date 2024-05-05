@@ -43,10 +43,10 @@ class Enajenante(db.Model):
 class Adquirente(db.Model):
     __tablename__ = 'adquirente'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    porc_derecho = db.Column(db.Integer)
-    form_id = db.Column(db.Integer, db.ForeignKey(
+    porc_derecho: int = db.Column(db.Integer)
+    form_id: int = db.Column(db.Integer, db.ForeignKey(
         'formulario.n_atencion'), nullable=False)
-    run_rut = db.Column(db.String(50), db.ForeignKey(
+    run_rut: str = db.Column(db.String(50), db.ForeignKey(
         'persona.run_rut'), nullable=False)
 
 

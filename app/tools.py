@@ -130,3 +130,24 @@ def generate_multipropietario_entry_from_formulario(
         ano_vigencia_inicial=ano_vigencia_inicial,
         ano_vigencia_final=ano_vigencia_final
     )
+
+
+def generate_form_json_from_multipropietario(entries: List[Multipropietario]):
+    def get_previous_forms(entries: List[Multipropietario]):
+        forms: List[Formulario] = []
+        for entry in entries:
+            source_form = Formulario.query.filter_by(
+                comuna=entry.comuna, manzana=entry.manzana, predio=entry.predio, fojas=entry.fojas, fecha_inscripcion=entry.fecha_inscripcion).first()
+            forms.append(source_form)
+        return forms
+
+    previous_forms = get_previous_forms(entries)
+
+    for f in previous_forms:
+        adquirentes: List[Adquirente] = Adquirente.query.filter_by(
+            form_id=f.n_atencion).all()
+        adquirentes_list = []
+
+        for a in adquirentes:
+            adquirentes_list.append(
+                {'RUNRUT': a.run_rut, 'porcDerecho': a.porc_derecho})

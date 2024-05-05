@@ -1,7 +1,7 @@
 from typing import List
 from models import db, Multipropietario
 from forms import FormularioForm
-from tools import is_empty, CONSTANTS, generate_multipropietario_entry_from_formulario
+from tools import is_empty, CONSTANTS, generate_multipropietario_entry_from_formulario, generate_form_json_from_multipropietario
 from sqlalchemy import asc
 from sqlalchemy.orm import Query
 
@@ -46,6 +46,9 @@ class MultipropietarioHandler:
                     print('E2')
                     nivel_0_escenario_2(
                         formulario, before_current_form_query)
+                case 3:
+                    print('E3')
+                    nivel_0_escenario_3(formulario, after_current_form)
                 case _:
                     print('Escenario inesperado.')
 
@@ -53,8 +56,11 @@ class MultipropietarioHandler:
             if is_empty(tabla_multipropietario):
                 return 1
 
-            if is_empty(after_current_form):
+            if not is_empty(before_current_form) and is_empty(after_current_form):
                 return 2
+
+            if not is_empty(after_current_form):
+                return 3
 
         def nivel_0_escenario_1(formulario: FormularioForm):
             for adquiriente in formulario.adquirentes.data:
@@ -65,12 +71,21 @@ class MultipropietarioHandler:
                     formulario, rut_adquiriente, porc_derecho_adquiriente)
                 db.session.add(new_multipropietario)
 
-        def nivel_0_escenario_2(formulario: FormularioForm, entries_before_current_form_query: Query[Multipropietario]):
-            for entry in entries_before_current_form_query:
+        def nivel_0_escenario_2(formulario: FormularioForm, query: Query[Multipropietario]):
+            last_entries = query.filter_by(ano_vigencia_final=None).all()
+            for entry in last_entries:
                 entry.ano_vigencia_final = formulario.fecha_inscripcion.data.year - 1
-                print(f'New year: {entry.ano_vigencia_final}')
 
             nivel_0_escenario_1(formulario)
+
+        def nivel_0_escenario_3(formulario: FormularioForm, entries_after_current_form: List[Multipropietario]):
+            # for entry in entries_after_current_form:
+            #     db.session.delete(entry)
+
+            # nivel_0_escenario_1(formulario)
+
+            forms: dict = generate_form_json_from_multipropietario(
+                entries_after_current_form)
 
         run_nivel_0()
 
