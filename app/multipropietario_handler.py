@@ -11,6 +11,8 @@ from sqlalchemy.orm import Query
 class MultipropietarioHandler:
 
     def process_new_form(self, formulario: FormularioObject):
+        print('New formulario: ', formulario.num_inscripcion,
+              formulario.fecha_inscripcion)
         if formulario.cne == CONSTANTS.CNE_REGULARIZACION.value:
             print("Nivel 0")
             self.nivel_0(formulario)
@@ -34,7 +36,7 @@ class MultipropietarioHandler:
             before_current_form = before_current_form_query.all()
 
             after_current_form_query = query.filter(
-                Multipropietario.ano_vigencia_inicial >= formulario.fecha_inscripcion)
+                Multipropietario.ano_vigencia_inicial > formulario.fecha_inscripcion)
             after_current_form = after_current_form_query.all()
 
             current_escenario = check_escenario(
@@ -62,6 +64,9 @@ class MultipropietarioHandler:
                 return 2
 
             if not is_empty(after_current_form):
+                print('After found: ')
+                for a in after_current_form:
+                    print(a.ano_vigencia_inicial, a.ano_vigencia_final)
                 return 3
 
         def nivel_0_escenario_1(formulario: FormularioObject):
@@ -76,7 +81,8 @@ class MultipropietarioHandler:
         def nivel_0_escenario_2(formulario: FormularioObject, query: Query[Multipropietario]):
             last_entries = query.filter_by(ano_vigencia_final=None).all()
             for entry in last_entries:
-                entry.ano_vigencia_final = formulario.fecha_inscripcion.year - 1
+                if entry.ano_vigencia_final is None:
+                    entry.ano_vigencia_final = formulario.fecha_inscripcion.year - 1
 
             nivel_0_escenario_1(formulario)
 
@@ -91,13 +97,20 @@ class MultipropietarioHandler:
 
             for form in forms['F2890']:
                 rol = form['bienRaiz']
-                forms_to_delete = Formulario.query.filter_by(cne=form['CNE'], fojas=form['fojas'],
-                                                             comuna=rol['comuna'], manzana=rol['manzana'], predio=rol['predio'],
-                                                             fecha_inscripcion=form['fechaInscripcion'], num_inscripcion=form['nroInscripcion']).all()
+                forms_to_delete: List[Formulario] = Formulario.query.filter_by(
+                    cne=form['CNE'], fojas=form['fojas'],
+                    comuna=rol['comuna'], manzana=rol['manzana'], predio=rol['predio'],
+                    fecha_inscripcion=form['fechaInscripcion'], num_inscripcion=form['nroInscripcion']).all()
                 for f in forms_to_delete:
                     db.session.delete(f)
 
-            process_and_save_json_into_db(db, forms)
+            db.session.commit()
+
+            if process_and_save_json_into_db(db, forms):
+                converted_forms_list = self.convert_json_into_object_list(
+                    forms)
+                for form in converted_forms_list:
+                    self.process_new_form(form)
 
         run_nivel_0()
 
@@ -125,7 +138,7 @@ class MultipropietarioHandler:
                                 enajenantes=parsed_enajenantes,
                                 adquirentes=parsed_adquirentes)
 
-    def convert_json_into_object_list(self, json_form: dict):
+    def convert_json_into_object_list(self, json_form: dict) -> List[FormularioObject]:
         objects = []
 
         for form in json_form['F2890']:

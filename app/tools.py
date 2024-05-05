@@ -1,9 +1,9 @@
-from typing import List
+from typing import List, Set
 from datetime import date
 from enum import Enum
 from models import Formulario, Enajenante, Adquirente, Persona, Comuna, Multipropietario
-from forms import FormularioForm
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import asc
 from dateutil.parser import parse
 
 
@@ -173,19 +173,22 @@ def generate_multipropietario_entry_from_formulario(
 
 
 def generate_form_json_from_multipropietario(entries: List[Multipropietario]):
-    def get_previous_forms(entries: List[Multipropietario]):
-        forms: List[Formulario] = []
+    def get_previous_forms(entries: List[Multipropietario]) -> List[Formulario]:
+        forms: Set[Formulario] = set()
         for entry in entries:
             source_form = Formulario.query.filter_by(
                 comuna=entry.comuna, manzana=entry.manzana, predio=entry.predio, fojas=entry.fojas, fecha_inscripcion=entry.fecha_inscripcion).first()
-            forms.append(source_form)
-        return forms
+            if source_form:
+                forms.add(source_form)
+        sorted_forms = sorted(list(forms), key=lambda x: x.fecha_inscripcion)
+        return sorted_forms
 
     previous_forms = get_previous_forms(entries)
-
+    print('Previous: ', previous_forms)
     json_forms = []
 
     for f in previous_forms:
+        print('F: ', f)
         current = {}
         current['CNE'] = f.cne
         current['bienRaiz'] = {'comuna': f.comuna,

@@ -8,7 +8,7 @@ db = SQLAlchemy()
 
 class Formulario(db.Model):
     def __repr__(self) -> str:
-        return f"ID: {self.n_atencion}\tCNE: {self.cne}\tFojas: {self.fojas}"
+        return f"Rol: {self.comuna},{self.manzana},{self.predio}\tFecha: {self.fecha_inscripcion}"
 
     __tablename__ = 'formulario'
     n_atencion = db.Column(db.Integer, primary_key=True,
