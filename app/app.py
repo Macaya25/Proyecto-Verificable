@@ -76,7 +76,8 @@ def form_route():
             )
             db.session.add(new_adquirente)
 
-        multiprop_handler.process_new_form(form)
+        converted_form = multiprop_handler.convert_form_into_object(form)
+        multiprop_handler.process_new_form(converted_form)
         db.session.commit()
         flash('Formulario registrado con éxito!')
         return redirect(url_for('forms_route'))

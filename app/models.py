@@ -1,6 +1,7 @@
+from datetime import date
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
-from datetime import date
+
 
 db = SQLAlchemy()
 

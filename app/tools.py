@@ -1,4 +1,5 @@
 from typing import List
+from datetime import date
 from enum import Enum
 from models import Formulario, Enajenante, Adquirente, Persona, Comuna, Multipropietario
 from forms import FormularioForm
@@ -9,6 +10,21 @@ from dateutil.parser import parse
 class CONSTANTS(Enum):
     CNE_REGULARIZACION = 99
     CNE_COMPRAVENTA = 8
+
+
+class FormularioObject:
+    def __init__(self, cne: int, comuna: int, manzana: str, predio: str,
+                 fojas: int, fecha_inscripcion: date, num_inscripcion: int,
+                 enajenantes: List[Enajenante], adquirentes: List[Adquirente]):
+        self.cne = cne
+        self.comuna = comuna
+        self.manzana = manzana
+        self.predio = predio
+        self.fojas = fojas
+        self.fecha_inscripcion = fecha_inscripcion
+        self.num_inscripcion = num_inscripcion
+        self.enajenantes = enajenantes
+        self.adquirentes = adquirentes
 
 
 def analyze_json(db: SQLAlchemy, json_form):
@@ -22,12 +38,10 @@ def analyze_json(db: SQLAlchemy, json_form):
 
             parse_json_and_set_form(
                 new_form, single_form)
-
             db.session.add(new_form)
 
             enajenantes: List[Enajenante] = parse_json_and_get_enajenantes(
                 single_form)
-
             adquirientes: List[Adquirente] = parse_json_and_get_adquirentes(
                 single_form)
 
@@ -135,22 +149,22 @@ def is_empty(lst: list):
 
 
 def generate_multipropietario_entry_from_formulario(
-        formulario: FormularioForm,
+        formulario: FormularioObject,
         rut: str, derecho: int) -> Multipropietario:
 
-    ano_vigencia_inicial = formulario.fecha_inscripcion.data.year
+    ano_vigencia_inicial = formulario.fecha_inscripcion.year
     ano_vigencia_final = None
 
     return Multipropietario(
-        comuna=formulario.comuna.data,
-        manzana=formulario.manzana.data,
-        predio=formulario.predio.data,
+        comuna=formulario.comuna,
+        manzana=formulario.manzana,
+        predio=formulario.predio,
         run_rut=rut,
         porc_derechos=derecho,
-        fojas=formulario.fojas.data,
-        ano_inscripcion=formulario.fecha_inscripcion.data.year,
-        num_inscripcion=formulario.num_inscripcion.data,
-        fecha_inscripcion=formulario.fecha_inscripcion.data,
+        fojas=formulario.fojas,
+        ano_inscripcion=formulario.fecha_inscripcion.year,
+        num_inscripcion=formulario.num_inscripcion,
+        fecha_inscripcion=formulario.fecha_inscripcion,
         ano_vigencia_inicial=ano_vigencia_inicial,
         ano_vigencia_final=ano_vigencia_final
     )

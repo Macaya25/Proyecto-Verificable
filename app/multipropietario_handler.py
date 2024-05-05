@@ -1,40 +1,40 @@
 import json
 from typing import List
-from models import db, Multipropietario, Formulario
+from models import db, Multipropietario, Formulario, Enajenante
 from forms import FormularioForm
 from tools import (is_empty, CONSTANTS, generate_multipropietario_entry_from_formulario,
-                   generate_form_json_from_multipropietario, analyze_json)
+                   generate_form_json_from_multipropietario, analyze_json, FormularioObject)
 from sqlalchemy import asc
 from sqlalchemy.orm import Query
 
 
 class MultipropietarioHandler:
 
-    def process_new_form(self, formulario: FormularioForm):
-        if formulario.cne.data == CONSTANTS.CNE_REGULARIZACION.value:
+    def process_new_form(self, formulario: FormularioObject):
+        if formulario.cne == CONSTANTS.CNE_REGULARIZACION.value:
             print("Nivel 0")
             self.nivel_0(formulario)
-        elif formulario.cne.data == CONSTANTS.CNE_COMPRAVENTA.value:
+        elif formulario.cne == CONSTANTS.CNE_COMPRAVENTA.value:
             print("Nivel 1")
             self.nivel_1(formulario)
         else:
-            print(f"Nivel inesperado: {formulario.cne.data}")
+            print(f"Nivel inesperado: {formulario.cne}")
 
-    def nivel_0(self, formulario: FormularioForm):
+    def nivel_0(self, formulario: FormularioObject):
         def run_nivel_0():
             query = Multipropietario.query.filter_by(
-                comuna=formulario.comuna.data,
-                manzana=formulario.manzana.data,
-                predio=formulario.predio.data
+                comuna=formulario.comuna,
+                manzana=formulario.manzana,
+                predio=formulario.predio
             ).order_by(asc(Multipropietario.ano_vigencia_inicial))
             tabla_multipropietario: List[Multipropietario] = query.all()
 
             before_current_form_query = query.filter(
-                Multipropietario.ano_vigencia_inicial < formulario.fecha_inscripcion.data)
+                Multipropietario.ano_vigencia_inicial < formulario.fecha_inscripcion)
             before_current_form = before_current_form_query.all()
 
             after_current_form_query = query.filter(
-                Multipropietario.ano_vigencia_inicial >= formulario.fecha_inscripcion.data)
+                Multipropietario.ano_vigencia_inicial >= formulario.fecha_inscripcion)
             after_current_form = after_current_form_query.all()
 
             current_escenario = check_escenario(
@@ -64,23 +64,23 @@ class MultipropietarioHandler:
             if not is_empty(after_current_form):
                 return 3
 
-        def nivel_0_escenario_1(formulario: FormularioForm):
-            for adquiriente in formulario.adquirentes.data:
-                rut_adquiriente: str = adquiriente['run_rut']
-                porc_derecho_adquiriente: int = adquiriente['porc_derecho']
+        def nivel_0_escenario_1(formulario: FormularioObject):
+            for adquiriente in formulario.adquirentes:
+                rut_adquiriente: str = adquiriente.run_rut
+                porc_derecho_adquiriente: int = adquiriente.porc_derecho
 
                 new_multipropietario = generate_multipropietario_entry_from_formulario(
                     formulario, rut_adquiriente, porc_derecho_adquiriente)
                 db.session.add(new_multipropietario)
 
-        def nivel_0_escenario_2(formulario: FormularioForm, query: Query[Multipropietario]):
+        def nivel_0_escenario_2(formulario: FormularioObject, query: Query[Multipropietario]):
             last_entries = query.filter_by(ano_vigencia_final=None).all()
             for entry in last_entries:
-                entry.ano_vigencia_final = formulario.fecha_inscripcion.data.year - 1
+                entry.ano_vigencia_final = formulario.fecha_inscripcion.year - 1
 
             nivel_0_escenario_1(formulario)
 
-        def nivel_0_escenario_3(formulario: FormularioForm, entries_after_current_form: List[Multipropietario]):
+        def nivel_0_escenario_3(formulario: FormularioObject, entries_after_current_form: List[Multipropietario]):
             for entry in entries_after_current_form:
                 db.session.delete(entry)
 
@@ -103,3 +103,24 @@ class MultipropietarioHandler:
 
     def nivel_1(self, formulario: FormularioForm):
         pass
+
+    def convert_form_into_object(self, form: FormularioForm):
+        parsed_enajenantes = []
+        parsed_adquirentes = []
+        for enajenante in form.enajenantes:
+            parsed_enajenantes.append(Enajenante(
+                run_rut=enajenante['run_rut'].data, porc_derecho=enajenante['porc_derecho'].data))
+
+        for adquirente in form.adquirentes:
+            parsed_adquirentes.append(Enajenante(
+                run_rut=adquirente['run_rut'].data, porc_derecho=adquirente['porc_derecho'].data))
+
+        return FormularioObject(cne=form.cne.data,
+                                comuna=form.comuna.data,
+                                manzana=form.manzana.data,
+                                predio=form.predio.data,
+                                fojas=form.fojas.data,
+                                fecha_inscripcion=form.fecha_inscripcion.data,
+                                num_inscripcion=form.num_inscripcion.data,
+                                enajenantes=parsed_enajenantes,
+                                adquirentes=parsed_adquirentes)
