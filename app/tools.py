@@ -143,7 +143,18 @@ def generate_form_json_from_multipropietario(entries: List[Multipropietario]):
 
     previous_forms = get_previous_forms(entries)
 
+    json_forms = []
+
     for f in previous_forms:
+        current = {}
+        current['CNE'] = f.cne
+        current['bienRaiz'] = {'comuna': f.comuna,
+                               'manzana': f.manzana,
+                               'predio': f.predio}
+        current['fojas'] = f.fojas
+        current['fechaInscripcion'] = f.fecha_inscripcion.strftime("%Y-%m-%d")
+        current['nroInscripcion'] = f.num_inscripcion
+
         adquirentes: List[Adquirente] = Adquirente.query.filter_by(
             form_id=f.n_atencion).all()
         adquirentes_list = []
@@ -151,3 +162,8 @@ def generate_form_json_from_multipropietario(entries: List[Multipropietario]):
         for a in adquirentes:
             adquirentes_list.append(
                 {'RUNRUT': a.run_rut, 'porcDerecho': a.porc_derecho})
+        current['adquirentes'] = adquirentes_list
+
+        json_forms.append(current)
+
+    return {'F2890': json_forms}

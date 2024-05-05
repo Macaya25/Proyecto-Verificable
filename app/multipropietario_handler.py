@@ -1,7 +1,9 @@
+import json
 from typing import List
-from models import db, Multipropietario
+from models import db, Multipropietario, Formulario
 from forms import FormularioForm
-from tools import is_empty, CONSTANTS, generate_multipropietario_entry_from_formulario, generate_form_json_from_multipropietario
+from tools import (is_empty, CONSTANTS, generate_multipropietario_entry_from_formulario,
+                   generate_form_json_from_multipropietario, analyze_json)
 from sqlalchemy import asc
 from sqlalchemy.orm import Query
 
@@ -79,13 +81,23 @@ class MultipropietarioHandler:
             nivel_0_escenario_1(formulario)
 
         def nivel_0_escenario_3(formulario: FormularioForm, entries_after_current_form: List[Multipropietario]):
-            # for entry in entries_after_current_form:
-            #     db.session.delete(entry)
+            for entry in entries_after_current_form:
+                db.session.delete(entry)
 
-            # nivel_0_escenario_1(formulario)
+            nivel_0_escenario_1(formulario)
 
             forms: dict = generate_form_json_from_multipropietario(
                 entries_after_current_form)
+
+            for form in forms['F2890']:
+                rol = form['bienRaiz']
+                forms_to_delete = Formulario.query.filter_by(cne=form['CNE'], fojas=form['fojas'],
+                                                             comuna=rol['comuna'], manzana=rol['manzana'], predio=rol['predio'],
+                                                             fecha_inscripcion=form['fechaInscripcion'], num_inscripcion=form['nroInscripcion']).all()
+                for f in forms_to_delete:
+                    db.session.delete(f)
+            print(forms)
+            analyze_json(db, forms)
 
         run_nivel_0()
 
