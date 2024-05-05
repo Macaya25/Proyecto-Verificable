@@ -92,10 +92,10 @@ class MultipropietarioHandler:
 
             nivel_0_escenario_1(formulario)
 
-            forms: dict = generate_form_json_from_multipropietario(
+            json_to_reprocess: dict = generate_form_json_from_multipropietario(
                 entries_after_current_form)
 
-            for form in forms['F2890']:
+            for form in json_to_reprocess['F2890']:
                 rol = form['bienRaiz']
                 forms_to_delete: List[Formulario] = Formulario.query.filter_by(
                     cne=form['CNE'], fojas=form['fojas'],
@@ -106,9 +106,9 @@ class MultipropietarioHandler:
 
             db.session.commit()
 
-            if process_and_save_json_into_db(db, forms):
+            if process_and_save_json_into_db(db, json_to_reprocess):
                 converted_forms_list = self.convert_json_into_object_list(
-                    forms)
+                    json_to_reprocess)
                 for form in converted_forms_list:
                     self.process_new_form(form)
 
