@@ -91,11 +91,14 @@
 <script>
     function addEnajenante() {
         var container = document.getElementById('enajenantes-container');
+        var index = container.children.length;
         var newGroup = document.createElement('div');
         newGroup.classList.add('form-group', 'enajenante-group', 'mt-3');
         newGroup.innerHTML = `
-            {{ form.enajenantes[0].run_rut(class="form-control mb-1", placeholder="RUN/RUT", required=True) }}
-            {{ form.enajenantes[0].porc_derecho(class="form-control mb-1", placeholder="% Derecho", required=True) }}
+            <label>RUN/RUT:</label>
+            <input type="text" name="enajenantes-${index}-run_rut" class="form-control mb-1" placeholder="RUN/RUT" required>
+            <label>% Derecho:</label>
+            <input type="text" name="enajenantes-${index}-porc_derecho" class="form-control mb-1" placeholder="% Derecho" required>
             <button type="button" class="btn btn-danger btn-sm mb-2" onclick="removeEnajenante(this)">Eliminar</button>
         `;
         container.appendChild(newGroup);
@@ -104,15 +107,19 @@
     function removeEnajenante(button) {
         var group = button.closest('.enajenante-group');
         group.remove();
+        updateIndices('enajenantes-container');
     }
 
     function addAdquirente() {
         var container = document.getElementById('adquirentes-container');
+        var index = container.children.length;
         var newGroup = document.createElement('div');
         newGroup.classList.add('form-group', 'adquirente-group', 'mt-3');
         newGroup.innerHTML = `
-            {{ form.adquirentes[0].run_rut(class="form-control mb-1", placeholder="RUN/RUT", required=True) }}
-            {{ form.adquirentes[0].porc_derecho(class="form-control mb-1", placeholder="% Derecho", required=True) }}
+            <label>RUN/RUT:</label>
+            <input type="text" name="adquirentes-${index}-run_rut" class="form-control mb-1" placeholder="RUN/RUT" required>
+            <label>% Derecho:</label>
+            <input type="text" name="adquirentes-${index}-porc_derecho" class="form-control mb-1" placeholder="% Derecho" required>
             <button type="button" class="btn btn-danger btn-sm mb-2" onclick="removeAdquirente(this)">Eliminar</button>
         `;
         container.appendChild(newGroup);
@@ -121,6 +128,18 @@
     function removeAdquirente(button) {
         var group = button.closest('.adquirente-group');
         group.remove();
+        updateIndices('adquirentes-container');
+    }
+
+    function updateIndices(containerId) {
+        var container = document.getElementById(containerId);
+        Array.from(container.children).forEach((group, index) => {
+            group.querySelectorAll('input').forEach(input => {
+                var name = input.name.split('-');
+                name[1] = index;
+                input.name = name.join('-');
+            });
+        });
     }
 
     function toggleSectionsVisibility() {
