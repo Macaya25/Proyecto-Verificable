@@ -5,3 +5,7 @@ pymysql
 cryptography
 python-dotenv
 python-dateutil
+
+# seed requ
+pandas
+openpyxl

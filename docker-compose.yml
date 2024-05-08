@@ -1,16 +1,16 @@
 version: "2"
 services:
   app:
-    build: 
-      context: ./app
-    links:
-      - db
-    ports:
-      - "5002:5000"
-    depends_on:
-      - db
-    volumes:
-      - ./app:/app
+   build: 
+     context: ./app
+   links:
+     - db
+   ports:
+     - "5000:5000"
+   depends_on:
+     - db
+   volumes:
+     - ./app:/app
       
   db:
     image: mysql:latest
