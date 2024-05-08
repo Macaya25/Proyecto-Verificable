@@ -2,9 +2,9 @@ from datetime import datetime
 from typing import List
 from models import db, Multipropietario, Formulario, Enajenante, Adquirente
 from forms import FormularioForm
-from tools import (is_empty, CONSTANTS, generate_multipropietario_entry_from_formulario,
+from tools import (is_empty, CONSTANTS, generate_multipropietario_entry_from_formulario,update_multipropietario_into_new_multipropietarios,
                    generate_form_json_from_multipropietario, process_and_save_json_into_db, FormularioObject)
-from sqlalchemy import asc
+from sqlalchemy import asc, and_
 from sqlalchemy.orm import Query
 
 
@@ -115,7 +115,114 @@ class MultipropietarioHandler:
         run_nivel_0()
 
     def nivel_1(self, formulario: FormularioForm):
-        pass
+        query = Multipropietario.query.filter(
+            and_(
+                Multipropietario.comuna == formulario.comuna,
+                Multipropietario.manzana == formulario.manzana,
+                Multipropietario.predio == formulario.predio,
+                Multipropietario.ano_vigencia_inicial <= formulario.fecha_inscripcion,
+                (Multipropietario.ano_vigencia_final >= formulario.fecha_inscripcion) | (Multipropietario.ano_vigencia_final == None)
+            )
+        )
+        tabla_multipropietario: List[Multipropietario] = query.all()
+        run_ruts = {multipropietario.run_rut for multipropietario in tabla_multipropietario}
+        # Create a list of run_ruts for all enajenantes
+        enajenante_run_ruts = [enajenante.run_rut for enajenante in formulario.enajenantes]
+
+        # Create a new list of multipropietarios that are not enajenantes
+        multipropietarios_sin_enajenantes = [multipropietario for multipropietario in tabla_multipropietario if multipropietario.run_rut not in enajenante_run_ruts]
+        
+        def update_multipropietario_ano_final(multipropietario: Multipropietario ):
+                if multipropietario.ano_vigencia_inicial.year < formulario.fecha_inscripcion.year:
+                    # Set ano_vigencia_final to one year less than formulario.fecha_inscripcion
+                    multipropietario.ano_vigencia_final = (formulario.fecha_inscripcion.year -1)
+                    return multipropietario
+                else:
+                    # Set ano_vigencia_final to the same year as formulario.fecha_inscripcion
+                    multipropietario.ano_vigencia_final = formulario.fecha_inscripcion     
+                    return multipropietario
+                
+        
+        def enajenante_fantasma():
+            if tabla_multipropietario is None or len(tabla_multipropietario) == 0:
+                return False
+            # Check if each enajenante.run_rut exists in run_ruts
+            for enajenante in formulario.enajenantes:
+                if enajenante.run_rut not in run_ruts:
+                    return False
+            # If all enajenantes are found, return True
+            return True
+        def sum_porc_derecho_adquirentes():
+            sum_porc_derecho = sum(adquirente.porc_derecho for adquirente in formulario.adquirentes)
+            return sum_porc_derecho
+        def sum_porc_derecho_enajenantes():
+            sum_porc_derecho = sum(enajenante.porc_derecho for enajenante in formulario.enajenantes)
+            return sum_porc_derecho
+        sum_porc_enajenantes= sum_porc_derecho_enajenantes()
+        def caso_1():
+            #caso 1 ADQ 100
+            for adquirente in formulario.adquirentes:
+                porc_derech_nuevo= ((adquirente.porc_derecho * sum_porc_derecho_enajenantes)/100)
+                new_multipropietario = generate_multipropietario_entry_from_formulario(formulario,adquirente.run_rut,porc_derech_nuevo)
+                db.session.add(new_multipropietario)
+            for multipropropietario in tabla_multipropietario:
+                updated_multipropietario = update_multipropietario_ano_final(multipropietario)
+                db.session.update(updated_multipropietario)
+            for multipropropietario in multipropietarios_sin_enajenantes:
+                multipropietario = update_multipropietario_into_new_multipropietarios(multipropietario,formulario)
+                db.session.add(multipropietario)
+        def caso_2():
+            #caso 2 ADQ 0 y se reparte en partes iguales
+            porc_derech_nuevo= (sum_porc_derecho_enajenantes/len(formulario.adquirentes))
+            for adquirente in formulario.adquirentes:
+                new_multipropietario = generate_multipropietario_entry_from_formulario(formulario,adquirente.run_rut,porc_derech_nuevo)
+                db.session.add(new_multipropietario)
+            for multipropropietario in tabla_multipropietario:
+                updated_multipropietario = update_multipropietario_ano_final(multipropietario)
+                db.session.update(updated_multipropietario)
+            for multipropropietario in multipropietarios_sin_enajenantes:
+                multipropietario = update_multipropietario_into_new_multipropietarios(multipropietario,formulario)
+                db.session.add(multipropietario)
+
+        def caso_3():
+            #caso 3 ADQ 1-99 ENA y ADQ == 1 
+            porc_derech_nuevo_adq= ((formulario.adquirentes[0].porc_derecho * sum_porc_derecho_enajenantes)/100)
+            porc_derech_nuevo_ena= sum_porc_derecho_enajenantes - porc_derech_nuevo_adq
+            new_multipropietario = generate_multipropietario_entry_from_formulario(formulario,formulario.adquirentes[0].run_rut,porc_derech_nuevo_adq)
+            db.session.add(new_multipropietario)
+            for multipropietario in tabla_multipropietario:
+                if multipropietario.run_rut == formulario.enajenantes[0].run_rut:
+                    multipropietario.porc_derechos = porc_derech_nuevo_ena
+                    db.session.update(multipropietario)
+
+        def caso_4():
+            #caso 4 else ADQ 1-99 ENA y ADQ !=1
+            for multipropietario in tabla_multipropietario:
+                for enajenante in formulario.enajenantes:
+                    if multipropietario.run_rut == enajenante.run_rut:
+                        updated_multipropietario = update_multipropietario_ano_final(multipropietario)
+                        db.session.update(updated_multipropietario)
+                        multipropietario.porc_derechos -= enajenante.porc_derecho
+                        if multipropietario.porc_derechos>0:
+                            new_multipropietario= update_multipropietario_into_new_multipropietarios(multipropietario,formulario)
+                            db.session.add(new_multipropietario)
+            for adquiriente in formulario.adquirentes:
+                new_multipropietario = generate_multipropietario_entry_from_formulario(formulario,adquiriente.run_rut,adquiriente.porc_derecho)
+                db.session.add(new_multipropietario)
+        def run_nivel1():
+            if enajenante_fantasma():
+                sum_porc_adquirientes = sum_porc_derecho_adquirentes()
+                if sum_porc_adquirientes == 100:
+                    caso_1()
+                elif sum_porc_adquirientes == 0:
+                    caso_2()
+                elif len(formulario.enajenantes) == 1 and len(formulario.adquirientes) == 1 and 0 < sum_porc_adquirientes < 100:
+                    caso_3()
+                else:
+                    caso_4()
+            else:
+                print("enajenante fantasma")
+            pass
 
     def convert_form_into_object(self, form: FormularioForm):
         parsed_enajenantes = []
