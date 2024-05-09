@@ -36,7 +36,7 @@ class Persona(db.Model):
 class Enajenante(db.Model):
     __tablename__ = 'enajenante'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    porc_derecho = db.Column(db.Integer)
+    porc_derecho: float = db.Column(db.Float)
     form_id = db.Column(db.Integer, db.ForeignKey(
         'formulario.n_atencion', ondelete='CASCADE'), nullable=False)
     run_rut = db.Column(db.String(50), db.ForeignKey(
@@ -46,7 +46,7 @@ class Enajenante(db.Model):
 class Adquirente(db.Model):
     __tablename__ = 'adquirente'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    porc_derecho: int = db.Column(db.Integer)
+    porc_derecho: float = db.Column(db.Float)
     form_id: int = db.Column(db.Integer, db.ForeignKey(
         'formulario.n_atencion', ondelete='CASCADE'), nullable=False)
     run_rut: str = db.Column(db.String(50), db.ForeignKey(
@@ -61,7 +61,7 @@ class Multipropietario(db.Model):
     predio: str = db.Column(db.String(50), index=True)
     run_rut: str = db.Column(db.String(50), db.ForeignKey(
         'persona.run_rut'))
-    porc_derechos: int = db.Column(db.Integer)
+    porc_derechos: float = db.Column(db.Float)
     fojas: int = db.Column(db.Integer)
     ano_inscripcion: int = db.Column(db.Integer)
     num_inscripcion: int = db.Column(db.Integer, index=True)
