@@ -205,17 +205,19 @@ class MultipropietarioHandler:
 
         def caso_4():
             # caso 4 else ADQ 1-99 ENA y ADQ !=1
+            for previous_entry in tabla_multipropietario:
+                update_multipropietario_ano_final(previous_entry)
+
             for multipropietario in tabla_multipropietario:
                 for enajenante in formulario.enajenantes:
                     if multipropietario.run_rut == enajenante.run_rut:
-                        updated_multipropietario = update_multipropietario_ano_final(
-                            multipropietario)
-                        db.session.update(updated_multipropietario)
-                        multipropietario.porc_derechos -= enajenante.porc_derecho
-                        if multipropietario.porc_derechos > 0:
-                            new_multipropietario = update_multipropietario_into_new_multipropietarios(
-                                multipropietario, formulario)
-                            db.session.add(new_multipropietario)
+                        final_porc_derecho = multipropietario.porc_derechos - enajenante.porc_derecho
+
+                        if final_porc_derecho > 0:
+                            updated_previous_multipropietario = generate_multipropietario_entry_from_formulario(
+                                formulario, formulario.enajenantes[0].run_rut, final_porc_derecho)
+                            db.session.add(updated_previous_multipropietario)
+
             for adquiriente in formulario.adquirentes:
                 new_multipropietario = generate_multipropietario_entry_from_formulario(
                     formulario, adquiriente.run_rut, adquiriente.porc_derecho)
