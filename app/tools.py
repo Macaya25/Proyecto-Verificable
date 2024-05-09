@@ -149,6 +149,7 @@ def process_and_save_json_into_db(db: SQLAlchemy, json_form) -> bool:
 def is_empty(lst: list):
     return not bool(lst)
 
+
 def update_multipropietario_into_new_multipropietarios(
     multiproppietario: Multipropietario,
     formulario: Formulario
@@ -168,6 +169,8 @@ def update_multipropietario_into_new_multipropietarios(
         ano_vigencia_inicial=ano_vigencia_inicial,
         ano_vigencia_final=ano_vigencia_final
     )
+
+
 def generate_multipropietario_entry_from_formulario(
         formulario: FormularioObject,
         rut: str, derecho: int) -> Multipropietario:

@@ -11,8 +11,5 @@ COPY requirements.txt /app
 RUN pip install -r requirements.txt
 
 COPY app.py entrypoint.sh /app/
-# Grant executable permissions to the entrypoint script
-RUN chmod +x /app/entrypoint.sh
 
-# Run the entrypoint script using shell explicitly
 ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
