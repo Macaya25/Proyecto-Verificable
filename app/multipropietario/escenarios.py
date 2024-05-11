@@ -141,6 +141,32 @@ class Nivel1:
                 db.session.add(multipropietario)
 
     @staticmethod
+    def escenario_3(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
+                    multipropietarios_solo_enajenantes: List[Multipropietario],
+                    multipropietarios_sin_enajenantes: List[Multipropietario]):
+        # caso 3 ADQ 1-99 ENA y ADQ == 1
+        for previous_entry in tabla_multipropietario:
+            Nivel1.update_multipropietario_ano_final(
+                db, formulario, previous_entry)
+
+        porc_derech_nuevo_adq = (
+            (formulario.adquirentes[0].porc_derecho * Nivel1.sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
+        porc_derech_nuevo_ena = Nivel1.sum_porc_derecho(
+            multipropietarios_solo_enajenantes) - porc_derech_nuevo_adq
+        new_multipropietario = generate_multipropietario_entry_from_formulario(
+            formulario, formulario.adquirentes[0].run_rut, porc_derech_nuevo_adq)
+        db.session.add(new_multipropietario)
+
+        updated_previous_multipropietario = generate_multipropietario_entry_from_formulario(
+            formulario, formulario.enajenantes[0].run_rut, porc_derech_nuevo_ena)
+        db.session.add(updated_previous_multipropietario)
+
+        for multipropietario in multipropietarios_sin_enajenantes:
+            multipropietario = Nivel1.update_multipropietario_into_new_multipropietarios(
+                multipropietario, formulario)
+            db.session.add(multipropietario)
+
+    @staticmethod
     def sum_porc_derecho(lst):
         sum_porc = sum(person.porc_derecho for person in lst)
         return sum_porc
