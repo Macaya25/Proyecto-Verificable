@@ -81,21 +81,21 @@ class MultipropietarioHandler:
             # If all enajenantes are found, return True
             return True
 
-        def caso_2():
-            # caso 2 ADQ 0 y se reparte en partes iguales
-            porc_derech_nuevo = (
-                sum_porc_derecho(multipropietarios_solo_enajenantes)/len(formulario.adquirentes))
-            for adquirente in formulario.adquirentes:
-                new_multipropietario = generate_multipropietario_entry_from_formulario(
-                    formulario, adquirente.run_rut, porc_derech_nuevo)
-                db.session.add(new_multipropietario)
-            for multipropietario in tabla_multipropietario:
-                updated_multipropietario = update_multipropietario_ano_final(
-                    multipropietario)
-            for multipropietario in multipropietarios_sin_enajenantes:
-                multipropietario = update_multipropietario_into_new_multipropietarios(
-                    multipropietario, formulario)
-                db.session.add(multipropietario)
+        # def caso_2():
+        #     # caso 2 ADQ 0 y se reparte en partes iguales
+        #     porc_derech_nuevo = (
+        #         sum_porc_derecho(multipropietarios_solo_enajenantes)/len(formulario.adquirentes))
+        #     for adquirente in formulario.adquirentes:
+        #         new_multipropietario = generate_multipropietario_entry_from_formulario(
+        #             formulario, adquirente.run_rut, porc_derech_nuevo)
+        #         db.session.add(new_multipropietario)
+        #     for multipropietario in tabla_multipropietario:
+        #         updated_multipropietario = update_multipropietario_ano_final(
+        #             multipropietario)
+        #     for multipropietario in multipropietarios_sin_enajenantes:
+        #         multipropietario = update_multipropietario_into_new_multipropietarios(
+        #             multipropietario, formulario)
+        #         db.session.add(multipropietario)
 
         def caso_3():
             # caso 3 ADQ 1-99 ENA y ADQ == 1
@@ -177,7 +177,8 @@ class MultipropietarioHandler:
                                    multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
             elif sum_porc_adquirientes == 0:
                 print('2')
-                caso_2()
+                Nivel1.escenario_2(formulario, db, tabla_multipropietario,
+                                   multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
             elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
                 print('3')
                 caso_3()
