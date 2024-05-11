@@ -93,3 +93,64 @@ class Nivel0:
                 db.session.delete(f)
 
         db.session.commit()
+
+
+class Nivel1:
+    @staticmethod
+    def escenario_1(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
+                    multipropietarios_solo_enajenantes: List[Multipropietario],
+                    multipropietarios_sin_enajenantes: List[Multipropietario]):
+        print('E1')
+        # caso 1 ADQ 100
+        for adquirente in formulario.adquirentes:
+            porc_derech_nuevo = (
+                (adquirente.porc_derecho * Nivel1.sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
+            new_multipropietario = generate_multipropietario_entry_from_formulario(
+                formulario, adquirente.run_rut, porc_derech_nuevo)
+            db.session.add(new_multipropietario)
+        for multipropietario in tabla_multipropietario:
+            Nivel1.update_multipropietario_ano_final(
+                formulario, multipropietario)
+
+        for multipropietario in multipropietarios_sin_enajenantes:
+            multipropietario = Nivel1.update_multipropietario_into_new_multipropietarios(
+                multipropietario, formulario)
+            db.session.add(multipropietario)
+
+    @staticmethod
+    def sum_porc_derecho(lst):
+        sum_porc = sum(person.porc_derecho for person in lst)
+        return sum_porc
+
+    @staticmethod
+    def update_multipropietario_ano_final(formulario: FormularioObject, multipropietario: Multipropietario):
+        if multipropietario.ano_vigencia_inicial < formulario.fecha_inscripcion.year:
+            # Set ano_vigencia_final to one year less than formulario.fecha_inscripcion
+            multipropietario.ano_vigencia_final = (
+                formulario.fecha_inscripcion.year - 1)
+            return multipropietario
+        else:
+            # Set ano_vigencia_final to the same year as formulario.fecha_inscripcion
+            multipropietario.ano_vigencia_final = formulario.fecha_inscripcion
+            return multipropietario
+
+    @staticmethod
+    def update_multipropietario_into_new_multipropietarios(
+        multiproppietario: Multipropietario,
+        formulario: Formulario
+    ) -> Multipropietario:
+        ano_vigencia_inicial = formulario.fecha_inscripcion.year
+        ano_vigencia_final = None
+        return Multipropietario(
+            comuna=formulario.comuna,
+            manzana=formulario.manzana,
+            predio=formulario.predio,
+            run_rut=multiproppietario.run_rut,
+            porc_derecho=multiproppietario.porc_derecho,
+            fojas=multiproppietario.fojas,
+            ano_inscripcion=multiproppietario.fecha_inscripcion.year,
+            num_inscripcion=multiproppietario.num_inscripcion,
+            fecha_inscripcion=multiproppietario.fecha_inscripcion,
+            ano_vigencia_inicial=ano_vigencia_inicial,
+            ano_vigencia_final=ano_vigencia_final
+        )

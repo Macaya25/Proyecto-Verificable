@@ -5,12 +5,12 @@ from multipropietario.multipropietario_tools import (
     FormularioObject,
     generate_multipropietario_entry_from_formulario,
     check_escenario)
-from multipropietario.escenarios import Nivel0
+from multipropietario.escenarios import Nivel0, Nivel1
 
 from models import db, Multipropietario, Enajenante, Adquirente
 from forms import FormularioForm
 from tools import (
-    CONSTANTS, update_multipropietario_into_new_multipropietarios)
+    CONSTANTS)
 
 
 class MultipropietarioHandler:
@@ -70,17 +70,6 @@ class MultipropietarioHandler:
                 print('Escenario inesperado.')
 
     def nivel_1(self, formulario: FormularioObject):
-        def update_multipropietario_ano_final(multipropietario: Multipropietario):
-            if multipropietario.ano_vigencia_inicial < formulario.fecha_inscripcion.year:
-                # Set ano_vigencia_final to one year less than formulario.fecha_inscripcion
-                multipropietario.ano_vigencia_final = (
-                    formulario.fecha_inscripcion.year - 1)
-                return multipropietario
-            else:
-                # Set ano_vigencia_final to the same year as formulario.fecha_inscripcion
-                multipropietario.ano_vigencia_final = formulario.fecha_inscripcion
-                return multipropietario
-
         def enajenante_fantasma():
             if tabla_multipropietario is None or len(tabla_multipropietario) == 0:
                 print('No existe tabla')
@@ -92,39 +81,10 @@ class MultipropietarioHandler:
             # If all enajenantes are found, return True
             return True
 
-        def sum_porc_derecho_adquirentes():
-            sum_porc_derecho = sum(
-                adquirente.porc_derecho for adquirente in formulario.adquirentes)
-            return sum_porc_derecho
-
-        def sum_porc_derecho_enajenantes():
-            sum_porc_derecho = sum(
-                enajenante.porc_derechos for enajenante in multipropietarios_solo_enajenantes)
-            return sum_porc_derecho
-
-        def caso_1():
-            print('Caso 1')
-            # caso 1 ADQ 100
-            for adquirente in formulario.adquirentes:
-                porc_derech_nuevo = (
-                    (adquirente.porc_derecho * sum_porc_derecho_enajenantes())/100)
-                new_multipropietario = generate_multipropietario_entry_from_formulario(
-                    formulario, adquirente.run_rut, porc_derech_nuevo)
-                db.session.add(new_multipropietario)
-            for multipropietario in tabla_multipropietario:
-                updated_multipropietario = update_multipropietario_ano_final(
-                    multipropietario)
-
-                # db.session.update(updated_multipropietario)
-            for multipropietario in multipropietarios_sin_enajenantes:
-                multipropietario = update_multipropietario_into_new_multipropietarios(
-                    multipropietario, formulario)
-                db.session.add(multipropietario)
-
         def caso_2():
             # caso 2 ADQ 0 y se reparte en partes iguales
             porc_derech_nuevo = (
-                sum_porc_derecho_enajenantes/len(formulario.adquirentes))
+                sum_porc_derecho(multipropietarios_solo_enajenantes)/len(formulario.adquirentes))
             for adquirente in formulario.adquirentes:
                 new_multipropietario = generate_multipropietario_entry_from_formulario(
                     formulario, adquirente.run_rut, porc_derech_nuevo)
@@ -143,8 +103,9 @@ class MultipropietarioHandler:
                 update_multipropietario_ano_final(previous_entry)
 
             porc_derech_nuevo_adq = (
-                (formulario.adquirentes[0].porc_derecho * sum_porc_derecho_enajenantes())/100)
-            porc_derech_nuevo_ena = sum_porc_derecho_enajenantes() - porc_derech_nuevo_adq
+                (formulario.adquirentes[0].porc_derecho * sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
+            porc_derech_nuevo_ena = sum_porc_derecho(
+                multipropietarios_solo_enajenantes) - porc_derech_nuevo_adq
             new_multipropietario = generate_multipropietario_entry_from_formulario(
                 formulario, formulario.adquirentes[0].run_rut, porc_derech_nuevo_adq)
             db.session.add(new_multipropietario)
@@ -166,7 +127,7 @@ class MultipropietarioHandler:
             for multipropietario in tabla_multipropietario:
                 for enajenante in formulario.enajenantes:
                     if multipropietario.run_rut == enajenante.run_rut:
-                        final_porc_derecho = multipropietario.porc_derechos - enajenante.porc_derecho
+                        final_porc_derecho = multipropietario.porc_derecho - enajenante.porc_derecho
 
                         if final_porc_derecho > 0:
                             updated_previous_multipropietario = generate_multipropietario_entry_from_formulario(
@@ -208,13 +169,12 @@ class MultipropietarioHandler:
         multipropietarios_solo_enajenantes = [
             multipropietario for multipropietario in tabla_multipropietario if multipropietario.run_rut in enajenante_run_ruts]
 
-        sum_porc_enajenantes = sum_porc_derecho_enajenantes()
-
         if enajenante_fantasma():
-            sum_porc_adquirientes = sum_porc_derecho_adquirentes()
+            sum_porc_adquirientes = Nivel1.sum_porc_derecho(
+                formulario.adquirentes)
             if sum_porc_adquirientes == 100:
-                print('1')
-                caso_1()
+                Nivel1.escenario_1(formulario, db, tabla_multipropietario,
+                                   multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
             elif sum_porc_adquirientes == 0:
                 print('2')
                 caso_2()

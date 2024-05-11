@@ -109,7 +109,7 @@ def form_json_route():
                 converted_forms_list = multiprop_handler.convert_json_into_object_list(
                     file)
                 for form in converted_forms_list:
-                    multiprop_handler.process_new_form(form)
+                    multiprop_handler.process_new_formulario(form)
                 db.session.commit()
 
             return redirect(url_for('forms_route'))

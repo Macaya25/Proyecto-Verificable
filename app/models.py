@@ -61,7 +61,7 @@ class Multipropietario(db.Model):
     predio: str = db.Column(db.String(50), index=True)
     run_rut: str = db.Column(db.String(50), db.ForeignKey(
         'persona.run_rut'))
-    porc_derechos: float = db.Column(db.Float)
+    porc_derecho: float = db.Column(db.Float)
     fojas: int = db.Column(db.Integer)
     ano_inscripcion: int = db.Column(db.Integer)
     num_inscripcion: int = db.Column(db.Integer, index=True)

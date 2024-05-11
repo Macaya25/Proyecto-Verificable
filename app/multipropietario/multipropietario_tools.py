@@ -56,7 +56,7 @@ def generate_multipropietario_entry_from_formulario(
         manzana=formulario.manzana,
         predio=formulario.predio,
         run_rut=rut,
-        porc_derechos=derecho,
+        porc_derecho=derecho,
         fojas=formulario.fojas,
         ano_inscripcion=formulario.fecha_inscripcion.year,
         num_inscripcion=formulario.num_inscripcion,
