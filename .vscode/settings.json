@@ -1,7 +1,9 @@
 {
-    "pylint.args": ["--disable=C0114", "--disable=C0115", "--disable=C0116"],
     "[python]": {
         "editor.defaultFormatter": "ms-python.autopep8",
         "editor.formatOnSave": true,
     },
+    "flake8.args": [
+        "--max-line-length=120"
+    ]
 }

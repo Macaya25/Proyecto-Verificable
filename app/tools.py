@@ -1,30 +1,13 @@
-from typing import List, Set
-from datetime import date
+from typing import List
 from enum import Enum
 from models import Formulario, Enajenante, Adquirente, Persona, Comuna, Multipropietario
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import asc
 from dateutil.parser import parse
 
 
 class CONSTANTS(Enum):
     CNE_REGULARIZACION = 99
     CNE_COMPRAVENTA = 8
-
-
-class FormularioObject:
-    def __init__(self, cne: int, comuna: int, manzana: str, predio: str,
-                 fojas: int, fecha_inscripcion: date, num_inscripcion: int,
-                 enajenantes: List[Enajenante], adquirentes: List[Adquirente]):
-        self.cne = cne
-        self.comuna = comuna
-        self.manzana = manzana
-        self.predio = predio
-        self.fojas = fojas
-        self.fecha_inscripcion = fecha_inscripcion
-        self.num_inscripcion = num_inscripcion
-        self.enajenantes = enajenantes
-        self.adquirentes = adquirentes
 
 
 def process_and_save_json_into_db(db: SQLAlchemy, json_form) -> bool:
@@ -169,65 +152,3 @@ def update_multipropietario_into_new_multipropietarios(
         ano_vigencia_inicial=ano_vigencia_inicial,
         ano_vigencia_final=ano_vigencia_final
     )
-
-
-def generate_multipropietario_entry_from_formulario(
-        formulario: FormularioObject,
-        rut: str, derecho: int) -> Multipropietario:
-
-    ano_vigencia_inicial = formulario.fecha_inscripcion.year
-    ano_vigencia_final = None
-
-    return Multipropietario(
-        comuna=formulario.comuna,
-        manzana=formulario.manzana,
-        predio=formulario.predio,
-        run_rut=rut,
-        porc_derechos=derecho,
-        fojas=formulario.fojas,
-        ano_inscripcion=formulario.fecha_inscripcion.year,
-        num_inscripcion=formulario.num_inscripcion,
-        fecha_inscripcion=formulario.fecha_inscripcion,
-        ano_vigencia_inicial=ano_vigencia_inicial,
-        ano_vigencia_final=ano_vigencia_final
-    )
-
-
-def generate_form_json_from_multipropietario(entries: List[Multipropietario]):
-    def get_previous_forms(entries: List[Multipropietario]) -> List[Formulario]:
-        forms: Set[Formulario] = set()
-        for entry in entries:
-            source_form = Formulario.query.filter_by(
-                comuna=entry.comuna, manzana=entry.manzana, predio=entry.predio, fojas=entry.fojas, fecha_inscripcion=entry.fecha_inscripcion).first()
-            if source_form:
-                forms.add(source_form)
-        sorted_forms = sorted(list(forms), key=lambda x: x.fecha_inscripcion)
-        return sorted_forms
-
-    previous_forms = get_previous_forms(entries)
-    print('Previous: ', previous_forms)
-    json_forms = []
-
-    for f in previous_forms:
-        print('F: ', f)
-        current = {}
-        current['CNE'] = f.cne
-        current['bienRaiz'] = {'comuna': f.comuna,
-                               'manzana': f.manzana,
-                               'predio': f.predio}
-        current['fojas'] = f.fojas
-        current['fechaInscripcion'] = f.fecha_inscripcion.strftime("%Y-%m-%d")
-        current['nroInscripcion'] = f.num_inscripcion
-
-        adquirentes: List[Adquirente] = Adquirente.query.filter_by(
-            form_id=f.n_atencion).all()
-        adquirentes_list = []
-
-        for a in adquirentes:
-            adquirentes_list.append(
-                {'RUNRUT': a.run_rut, 'porcDerecho': a.porc_derecho})
-        current['adquirentes'] = adquirentes_list
-
-        json_forms.append(current)
-
-    return {'F2890': json_forms}

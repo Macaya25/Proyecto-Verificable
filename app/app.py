@@ -7,7 +7,7 @@ from forms import FormularioForm, JSONForm
 from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario, CNE, Comuna
 from tools import process_and_save_json_into_db, CONSTANTS
 from dotenv import load_dotenv
-from multipropietario_handler import MultipropietarioHandler
+from multipropietario.multipropietario_handler import MultipropietarioHandler
 
 
 load_dotenv()
@@ -77,7 +77,7 @@ def form_route():
             db.session.add(new_adquirente)
 
         converted_form = multiprop_handler.convert_form_into_object(form)
-        multiprop_handler.process_new_form(converted_form)
+        multiprop_handler.process_new_formulario(converted_form)
         db.session.commit()
         flash('Formulario registrado con éxito!')
         return redirect(url_for('forms_route'))
