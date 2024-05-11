@@ -110,7 +110,7 @@ class Nivel1:
             db.session.add(new_multipropietario)
         for multipropietario in tabla_multipropietario:
             Nivel1.update_multipropietario_ano_final(
-                formulario, multipropietario)
+                db, formulario, multipropietario)
 
         for multipropietario in multipropietarios_sin_enajenantes:
             multipropietario = Nivel1.update_multipropietario_into_new_multipropietarios(
@@ -121,22 +121,24 @@ class Nivel1:
     def escenario_2(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
                     multipropietarios_solo_enajenantes: List[Multipropietario],
                     multipropietarios_sin_enajenantes: List[Multipropietario]):
-        # caso 2 ADQ 0 y se reparte en partes iguales
+
         porc_derech_nuevo = (
             Nivel1.sum_porc_derecho(multipropietarios_solo_enajenantes)/len(formulario.adquirentes))
+
         for adquirente in formulario.adquirentes:
             new_multipropietario = generate_multipropietario_entry_from_formulario(
                 formulario, adquirente.run_rut, porc_derech_nuevo)
             db.session.add(new_multipropietario)
 
-        for multipropietario in tabla_multipropietario:
+        for multipropietario in multipropietarios_solo_enajenantes:
             Nivel1.update_multipropietario_ano_final(
-                formulario, multipropietario)
+                db, formulario, multipropietario)
 
-        for multipropietario in multipropietarios_sin_enajenantes:
-            multipropietario = Nivel1.update_multipropietario_into_new_multipropietarios(
-                multipropietario, formulario)
-            db.session.add(multipropietario)
+        if multipropietario.ano_vigencia_inicial != formulario.fecha_inscripcion.year:
+            for multipropietario in multipropietarios_sin_enajenantes:
+                multipropietario = Nivel1.update_multipropietario_into_new_multipropietarios(
+                    multipropietario, formulario)
+                db.session.add(multipropietario)
 
     @staticmethod
     def sum_porc_derecho(lst):
@@ -144,16 +146,17 @@ class Nivel1:
         return sum_porc
 
     @staticmethod
-    def update_multipropietario_ano_final(formulario: FormularioObject, multipropietario: Multipropietario):
+    def update_multipropietario_ano_final(db: SQLAlchemy, formulario: FormularioObject, multipropietario: Multipropietario):
         if multipropietario.ano_vigencia_inicial < formulario.fecha_inscripcion.year:
             # Set ano_vigencia_final to one year less than formulario.fecha_inscripcion
             multipropietario.ano_vigencia_final = (
                 formulario.fecha_inscripcion.year - 1)
-            return multipropietario
         else:
             # Set ano_vigencia_final to the same year as formulario.fecha_inscripcion
-            multipropietario.ano_vigencia_final = formulario.fecha_inscripcion.year
-            return multipropietario
+            if multipropietario.ano_vigencia_inicial == formulario.fecha_inscripcion.year:
+                remove_from_multipropietario(db, [multipropietario])
+            # multipropietario.ano_vigencia_final = formulario.fecha_inscripcion.year
+            # return multipropietario
 
     @staticmethod
     def update_multipropietario_into_new_multipropietarios(
