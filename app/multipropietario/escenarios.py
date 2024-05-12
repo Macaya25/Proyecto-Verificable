@@ -2,7 +2,7 @@ from typing import List
 from multipropietario.multipropietario_tools import (
     generate_multipropietario_entry_from_formulario, FormularioObject,
     remove_from_multipropietario, generate_formularios_json_from_multipropietario,
-    get_formularios_from_multipropietarios)
+    get_formularios_from_multipropietarios, reprocess_formularios)
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Query
 from models import Multipropietario, Formulario
@@ -46,22 +46,27 @@ class Nivel0:
         remove_from_multipropietario(db, same_year_current_form)
 
         if current_date > previous_date:
+            print('Futuro')
             Nivel0.add_form_to_multipropietario(db, formulario)
 
         elif current_date < previous_date:
-            same_year_formulario_objects: List[FormularioObject] = list(map(get_formularios_from_multipropietarios,
-                                                                        same_year_current_form))
-            for form_object in same_year_formulario_objects:
-                handler.process_new_formulario(form_object)
+            print('pasado')
+            remove_from_multipropietario(db, same_year_current_form)
+            past_formularios: List[Formulario] = get_formularios_from_multipropietarios(same_year_current_form)
+            past_formularios.append(formulario)
+            sorted_formularios = sorted(list(past_formularios), key=lambda x: x.fecha_inscripcion)
+            reprocess_formularios(db, handler, sorted_formularios)
 
         elif current_date == previous_date:
+            print('Misma fecha')
             if formulario.num_inscripcion > same_year_current_form[0].num_inscripcion:
                 Nivel0.add_form_to_multipropietario(db, formulario)
             elif formulario.num_inscripcion < same_year_current_form[0].num_inscripcion:
-                same_year_formulario_objects: List[FormularioObject] = list(map(get_formularios_from_multipropietarios,
-                                                                                same_year_current_form))
-                for form_object in same_year_formulario_objects:
-                    handler.process_new_formulario(form_object)
+                remove_from_multipropietario(db, same_year_current_form)
+                past_formularios: List[Formulario] = get_formularios_from_multipropietarios(same_year_current_form)
+                past_formularios.append(formulario)
+                sorted_formularios = sorted(list(past_formularios), key=lambda x: x.fecha_inscripcion)
+                reprocess_formularios(db, handler, sorted_formularios)
 
     @staticmethod
     def add_form_to_multipropietario(db: SQLAlchemy, formulario: FormularioObject):
@@ -76,8 +81,7 @@ class Nivel0:
     @staticmethod
     def reprocess_json(handler, db: SQLAlchemy, json_to_reprocess):
         if process_and_save_json_into_db(db, json_to_reprocess):
-            converted_forms_list = handler.convert_json_into_object_list(
-                json_to_reprocess)
+            converted_forms_list = handler.convert_json_into_object_list(json_to_reprocess)
             for form in converted_forms_list:
                 handler.process_new_form(form)
 
@@ -113,8 +117,7 @@ class Nivel1:
                 db, formulario, multipropietario)
 
         for multipropietario in multipropietarios_sin_enajenantes:
-            multipropietario = Nivel1.update_multipropietario_into_new_multipropietarios(
-                multipropietario, formulario)
+            multipropietario = Nivel1.update_multipropietario_into_new_multipropietarios(multipropietario, formulario)
             db.session.add(multipropietario)
 
     @staticmethod
@@ -146,13 +149,11 @@ class Nivel1:
                     multipropietarios_sin_enajenantes: List[Multipropietario]):
         # caso 3 ADQ 1-99 ENA y ADQ == 1
         for previous_entry in tabla_multipropietario:
-            Nivel1.update_multipropietario_ano_final(
-                db, formulario, previous_entry)
+            Nivel1.update_multipropietario_ano_final(db, formulario, previous_entry)
 
         porc_derech_nuevo_adq = (
             (formulario.adquirentes[0].porc_derecho * Nivel1.sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
-        porc_derech_nuevo_ena = Nivel1.sum_porc_derecho(
-            multipropietarios_solo_enajenantes) - porc_derech_nuevo_adq
+        porc_derech_nuevo_ena = Nivel1.sum_porc_derecho(multipropietarios_solo_enajenantes) - porc_derech_nuevo_adq
         new_multipropietario = generate_multipropietario_entry_from_formulario(
             formulario, formulario.adquirentes[0].run_rut, porc_derech_nuevo_adq)
         db.session.add(new_multipropietario)
@@ -160,6 +161,33 @@ class Nivel1:
         updated_previous_multipropietario = generate_multipropietario_entry_from_formulario(
             formulario, formulario.enajenantes[0].run_rut, porc_derech_nuevo_ena)
         db.session.add(updated_previous_multipropietario)
+
+        for multipropietario in multipropietarios_sin_enajenantes:
+            multipropietario = Nivel1.update_multipropietario_into_new_multipropietarios(multipropietario, formulario)
+            db.session.add(multipropietario)
+
+    @staticmethod
+    def escenario_4(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
+                    multipropietarios_solo_enajenantes: List[Multipropietario],
+                    multipropietarios_sin_enajenantes: List[Multipropietario]):
+        # caso 4 else ADQ 1-99 ENA y ADQ !=1
+        for previous_entry in tabla_multipropietario:
+            Nivel1.update_multipropietario_ano_final(db, formulario, previous_entry)
+
+        for multipropietario in tabla_multipropietario:
+            for enajenante in formulario.enajenantes:
+                if multipropietario.run_rut == enajenante.run_rut:
+                    final_porc_derecho = multipropietario.porc_derecho - enajenante.porc_derecho
+
+                    if final_porc_derecho > 0:
+                        updated_previous_multipropietario = generate_multipropietario_entry_from_formulario(
+                            formulario, enajenante.run_rut, final_porc_derecho)
+                        db.session.add(updated_previous_multipropietario)
+
+        for adquiriente in formulario.adquirentes:
+            new_multipropietario = generate_multipropietario_entry_from_formulario(
+                formulario, adquiriente.run_rut, adquiriente.porc_derecho)
+            db.session.add(new_multipropietario)
 
         for multipropietario in multipropietarios_sin_enajenantes:
             multipropietario = Nivel1.update_multipropietario_into_new_multipropietarios(

@@ -2,12 +2,12 @@ from datetime import datetime
 from typing import List
 from sqlalchemy import asc, and_, or_
 from multipropietario.multipropietario_tools import (
-    FormularioObject,
-    generate_multipropietario_entry_from_formulario,
-    check_escenario)
+    FormularioObject, reprocess_future_multipropietarios,
+    check_escenario, get_formularios_from_multipropietarios,
+    remove_from_multipropietario, reprocess_formularios)
 from multipropietario.escenarios import Nivel0, Nivel1
 
-from models import db, Multipropietario, Enajenante, Adquirente
+from models import db, Multipropietario, Enajenante, Adquirente, Formulario
 from forms import FormularioForm
 from tools import (
     CONSTANTS)
@@ -81,64 +81,6 @@ class MultipropietarioHandler:
             # If all enajenantes are found, return True
             return True
 
-        # def caso_2():
-        #     # caso 2 ADQ 0 y se reparte en partes iguales
-        #     porc_derech_nuevo = (
-        #         sum_porc_derecho(multipropietarios_solo_enajenantes)/len(formulario.adquirentes))
-        #     for adquirente in formulario.adquirentes:
-        #         new_multipropietario = generate_multipropietario_entry_from_formulario(
-        #             formulario, adquirente.run_rut, porc_derech_nuevo)
-        #         db.session.add(new_multipropietario)
-        #     for multipropietario in tabla_multipropietario:
-        #         updated_multipropietario = update_multipropietario_ano_final(
-        #             multipropietario)
-        #     for multipropietario in multipropietarios_sin_enajenantes:
-        #         multipropietario = update_multipropietario_into_new_multipropietarios(
-        #             multipropietario, formulario)
-        #         db.session.add(multipropietario)
-
-        # def caso_3():
-        #     # caso 3 ADQ 1-99 ENA y ADQ == 1
-        #     for previous_entry in tabla_multipropietario:
-        #         update_multipropietario_ano_final(previous_entry)
-
-        #     porc_derech_nuevo_adq = (
-        #         (formulario.adquirentes[0].porc_derecho * sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
-        #     porc_derech_nuevo_ena = sum_porc_derecho(
-        #         multipropietarios_solo_enajenantes) - porc_derech_nuevo_adq
-        #     new_multipropietario = generate_multipropietario_entry_from_formulario(
-        #         formulario, formulario.adquirentes[0].run_rut, porc_derech_nuevo_adq)
-        #     db.session.add(new_multipropietario)
-
-        #     updated_previous_multipropietario = generate_multipropietario_entry_from_formulario(
-        #         formulario, formulario.enajenantes[0].run_rut, porc_derech_nuevo_ena)
-        #     db.session.add(updated_previous_multipropietario)
-
-        #     for multipropietario in multipropietarios_sin_enajenantes:
-        #         multipropietario = update_multipropietario_into_new_multipropietarios(
-        #             multipropietario, formulario)
-        #         db.session.add(multipropietario)
-
-        def caso_4():
-            # caso 4 else ADQ 1-99 ENA y ADQ !=1
-            for previous_entry in tabla_multipropietario:
-                update_multipropietario_ano_final(previous_entry)
-
-            for multipropietario in tabla_multipropietario:
-                for enajenante in formulario.enajenantes:
-                    if multipropietario.run_rut == enajenante.run_rut:
-                        final_porc_derecho = multipropietario.porc_derecho - enajenante.porc_derecho
-
-                        if final_porc_derecho > 0:
-                            updated_previous_multipropietario = generate_multipropietario_entry_from_formulario(
-                                formulario, formulario.enajenantes[0].run_rut, final_porc_derecho)
-                            db.session.add(updated_previous_multipropietario)
-
-            for adquiriente in formulario.adquirentes:
-                new_multipropietario = generate_multipropietario_entry_from_formulario(
-                    formulario, adquiriente.run_rut, adquiriente.porc_derecho)
-                db.session.add(new_multipropietario)
-
         print('Nivel 1')
         query = Multipropietario.query.filter(
             and_(
@@ -153,8 +95,18 @@ class MultipropietarioHandler:
             )
         )
 
+        future_query = Multipropietario.query.filter(
+            and_(
+                Multipropietario.comuna == formulario.comuna,
+                Multipropietario.manzana == formulario.manzana,
+                Multipropietario.predio == formulario.predio,
+                Multipropietario.fecha_inscripcion > formulario.fecha_inscripcion
+            )
+        )
+        future_multipropietarios: List[Multipropietario] = future_query.all()
+
         tabla_multipropietario: List[Multipropietario] = query.all()
-        print('Tabla: ', tabla_multipropietario)
+        # print('Tabla: ', tabla_multipropietario)
         run_ruts = {
             multipropietario.run_rut for multipropietario in tabla_multipropietario}
 
@@ -169,27 +121,72 @@ class MultipropietarioHandler:
         multipropietarios_solo_enajenantes = [
             multipropietario for multipropietario in tabla_multipropietario if multipropietario.run_rut in enajenante_run_ruts]
 
-        if enajenante_fantasma():
-            sum_porc_adquirientes = Nivel1.sum_porc_derecho(
-                formulario.adquirentes)
-            if sum_porc_adquirientes == 100:
+        # if enajenante_fantasma():
+        sum_porc_adquirientes = Nivel1.sum_porc_derecho(formulario.adquirentes)
+
+        if sum_porc_adquirientes == 100:
+            if future_multipropietarios:
+                print('Futuro encontrado.')
+                remove_from_multipropietario(db, tabla_multipropietario)
+                db.session.commit()
+                past_formularios: List[Formulario] = get_formularios_from_multipropietarios(tabla_multipropietario)
+                past_formularios.append(formulario)
+                sorted_formularios = sorted(list(past_formularios), key=lambda x: x.fecha_inscripcion)
+                print(sorted_formularios)
+                reprocess_formularios(db, self, sorted_formularios)
+
+            else:
                 Nivel1.escenario_1(formulario, db, tabla_multipropietario,
                                    multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
-            elif sum_porc_adquirientes == 0:
-                print('2')
+
+        elif sum_porc_adquirientes == 0:
+            print('2')
+            if future_multipropietarios:
+                print('Futuro encontrado.')
+                remove_from_multipropietario(db, tabla_multipropietario)
+                db.session.commit()
+                past_formularios: List[Formulario] = get_formularios_from_multipropietarios(tabla_multipropietario)
+                past_formularios.append(formulario)
+                sorted_formularios = sorted(list(past_formularios), key=lambda x: x.fecha_inscripcion)
+                print(sorted_formularios)
+                reprocess_formularios(db, self, sorted_formularios)
+
+            else:
                 Nivel1.escenario_2(formulario, db, tabla_multipropietario,
                                    multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
-            elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
-                print('3')
+
+        elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
+            print('3')
+            if future_multipropietarios:
+                print('Futuro encontrado.')
+                remove_from_multipropietario(db, tabla_multipropietario)
+                db.session.commit()
+                past_formularios: List[Formulario] = get_formularios_from_multipropietarios(tabla_multipropietario)
+                past_formularios.append(formulario)
+                sorted_formularios = sorted(list(past_formularios), key=lambda x: x.fecha_inscripcion)
+                print(sorted_formularios)
+                reprocess_formularios(db, self, sorted_formularios)
+            else:
                 Nivel1.escenario_3(formulario, db, tabla_multipropietario,
                                    multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
-            else:
-                print('4')
-                caso_4()
-        else:
-            print("enajenante fantasma")
 
-    def convert_form_into_object(self, form: FormularioForm):
+        else:
+            print('4')
+            if future_multipropietarios:
+                remove_from_multipropietario(db, tabla_multipropietario)
+                past_formularios: List[Formulario] = get_formularios_from_multipropietarios(tabla_multipropietario)
+                past_formularios.append(formulario)
+                sorted_formularios = sorted(list(past_formularios), key=lambda x: x.fecha_inscripcion)
+                reprocess_formularios(db, self, sorted_formularios)
+
+            else:
+                Nivel1.escenario_4(formulario, db, tabla_multipropietario,
+                                   multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
+
+        # else:
+        #     print("enajenante fantasma")
+
+    def convert_form_into_object(self, form: FormularioForm) -> FormularioObject:
         parsed_enajenantes = []
         parsed_adquirentes = []
         for enajenante in form.enajenantes:
@@ -250,3 +247,11 @@ class MultipropietarioHandler:
             objects.append(current_object)
 
         return objects
+
+    def convert_formulario_into_object(self, formulario: Formulario) -> FormularioObject:
+        enajenantes = Enajenante.query.filter_by(form_id=formulario.n_atencion).all()
+        adquirentes = Adquirente.query.filter_by(form_id=formulario.n_atencion).all()
+
+        return FormularioObject(formulario.cne, formulario.comuna, formulario.manzana, formulario.predio,
+                                formulario.fojas, formulario.fecha_inscripcion, formulario.num_inscripcion,
+                                enajenantes, adquirentes)

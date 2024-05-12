@@ -1,6 +1,6 @@
 from typing import List
 from enum import Enum
-from models import Formulario, Enajenante, Adquirente, Persona, Comuna, Multipropietario
+from models import Formulario, Enajenante, Adquirente, Persona, Comuna
 from flask_sqlalchemy import SQLAlchemy
 from dateutil.parser import parse
 
@@ -131,24 +131,3 @@ def process_and_save_json_into_db(db: SQLAlchemy, json_form) -> bool:
 
 def is_empty(lst: list):
     return not bool(lst)
-
-
-# def update_multipropietario_into_new_multipropietarios(
-#     multiproppietario: Multipropietario,
-#     formulario: Formulario
-# ) -> Multipropietario:
-#     ano_vigencia_inicial = formulario.fecha_inscripcion.year
-#     ano_vigencia_final = None
-#     return Multipropietario(
-#         comuna=formulario.comuna,
-#         manzana=formulario.manzana,
-#         predio=formulario.predio,
-#         run_rut=multiproppietario.run_rut,
-#         porc_derechos=multiproppietario.porc_derechos,
-#         fojas=multiproppietario.fojas,
-#         ano_inscripcion=multiproppietario.fecha_inscripcion.year,
-#         num_inscripcion=multiproppietario.num_inscripcion,
-#         fecha_inscripcion=multiproppietario.fecha_inscripcion,
-#         ano_vigencia_inicial=ano_vigencia_inicial,
-#         ano_vigencia_final=ano_vigencia_final
-#     )

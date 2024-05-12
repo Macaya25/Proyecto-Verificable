@@ -49,31 +49,23 @@ def form_route():
 
         if form.cne.data == CONSTANTS.CNE_COMPRAVENTA.value:
             for enajenante_data in form.enajenantes.data:
-                enajenante_persona = db.session.get(
-                    Persona, enajenante_data['run_rut'])
+                enajenante_persona = db.session.get(Persona, enajenante_data['run_rut'])
                 if not enajenante_persona:
-                    enajenante_persona = Persona(
-                        run_rut=enajenante_data['run_rut'])
+                    enajenante_persona = Persona(run_rut=enajenante_data['run_rut'])
                     db.session.add(enajenante_persona)
-                new_enajenante = Enajenante(
-                    porc_derecho=enajenante_data['porc_derecho'],
-                    persona=enajenante_persona,
-                    formulario=new_formulario
-                )
+                new_enajenante = Enajenante(porc_derecho=enajenante_data['porc_derecho'],
+                                            persona=enajenante_persona,
+                                            formulario=new_formulario)
                 db.session.add(new_enajenante)
 
         for adquirente_data in form.adquirentes.data:
-            adquirente_persona = db.session.get(
-                Persona, adquirente_data['run_rut'])
+            adquirente_persona = db.session.get(Persona, adquirente_data['run_rut'])
             if not adquirente_persona:
-                adquirente_persona = Persona(
-                    run_rut=adquirente_data['run_rut'])
+                adquirente_persona = Persona(run_rut=adquirente_data['run_rut'])
                 db.session.add(adquirente_persona)
-            new_adquirente = Adquirente(
-                porc_derecho=adquirente_data['porc_derecho'],
-                persona=adquirente_persona,
-                formulario=new_formulario
-            )
+            new_adquirente = Adquirente(porc_derecho=adquirente_data['porc_derecho'],
+                                        persona=adquirente_persona,
+                                        formulario=new_formulario)
             db.session.add(new_adquirente)
 
         converted_form = multiprop_handler.convert_form_into_object(form)

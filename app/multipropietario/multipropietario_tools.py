@@ -2,6 +2,7 @@ from typing import List, Set
 from datetime import date
 from models import Multipropietario, Adquirente, Enajenante, Formulario
 from tools import is_empty
+from flask_sqlalchemy import SQLAlchemy
 
 
 class FormularioObject:
@@ -98,6 +99,7 @@ def generate_formularios_json_from_multipropietario(entries: List[Multipropietar
 
 def get_formularios_from_multipropietarios(entries: List[Multipropietario]) -> List[Formulario]:
     forms: Set[Formulario] = set()
+    print(entries)
     for entry in entries:
         source_form = Formulario.query.filter_by(
             comuna=entry.comuna, manzana=entry.manzana, predio=entry.predio,
@@ -106,3 +108,18 @@ def get_formularios_from_multipropietarios(entries: List[Multipropietario]) -> L
             forms.add(source_form)
     sorted_forms = sorted(list(forms), key=lambda x: x.fecha_inscripcion)
     return sorted_forms
+
+
+def reprocess_future_multipropietarios(db: SQLAlchemy, handler, future_multipropietarios: List[Multipropietario]):
+    future_formularios = get_formularios_from_multipropietarios(
+        future_multipropietarios)
+    future_formulario_objects: List[FormularioObject] = list(map(handler.convert_formulario_into_object,
+                                                                 future_formularios))
+    reprocess_formularios(db, handler, future_formulario_objects)
+
+
+def reprocess_formularios(db: SQLAlchemy, handler, formularios: List[Formulario]):
+
+    for form_object in formularios:
+        handler.process_new_formulario(form_object)
+        db.session.commit()
