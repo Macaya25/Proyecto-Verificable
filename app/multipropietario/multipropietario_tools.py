@@ -119,7 +119,13 @@ def reprocess_future_multipropietarios(db: SQLAlchemy, handler, future_multiprop
 
 
 def reprocess_formularios(db: SQLAlchemy, handler, formularios: List[Formulario]):
-
     for form_object in formularios:
         handler.process_new_formulario(form_object)
         db.session.commit()
+
+
+def add_formulario_with_multipropietarios_and_sort(formulario: Formulario, multipropietarios: List[Multipropietario]):
+    past_formularios: List[Formulario] = get_formularios_from_multipropietarios(multipropietarios)
+    past_formularios.append(formulario)
+    sorted_formularios = sorted(list(past_formularios), key=lambda x: x.fecha_inscripcion)
+    return sorted_formularios

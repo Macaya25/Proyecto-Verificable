@@ -19,14 +19,11 @@ def process_and_save_json_into_db(db: SQLAlchemy, json_form) -> bool:
         for single_form in json_form['F2890']:
             new_form: Formulario = Formulario()
 
-            parse_json_and_set_form(
-                new_form, single_form)
+            parse_json_and_set_form(new_form, single_form)
             db.session.add(new_form)
 
-            enajenantes: List[Enajenante] = parse_json_and_get_enajenantes(
-                single_form)
-            adquirientes: List[Adquirente] = parse_json_and_get_adquirentes(
-                single_form)
+            enajenantes: List[Enajenante] = parse_json_and_get_enajenantes(single_form)
+            adquirientes: List[Adquirente] = parse_json_and_get_adquirentes(single_form)
 
             for single_enajenante in enajenantes:
                 single_enajenante.form_id = new_form.n_atencion

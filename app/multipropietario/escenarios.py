@@ -2,7 +2,7 @@ from typing import List
 from multipropietario.multipropietario_tools import (
     generate_multipropietario_entry_from_formulario, FormularioObject,
     remove_from_multipropietario, generate_formularios_json_from_multipropietario,
-    get_formularios_from_multipropietarios, reprocess_formularios)
+    reprocess_formularios, add_formulario_with_multipropietarios_and_sort)
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Query
 from models import Multipropietario, Formulario
@@ -46,26 +46,19 @@ class Nivel0:
         remove_from_multipropietario(db, same_year_current_form)
 
         if current_date > previous_date:
-            print('Futuro')
             Nivel0.add_form_to_multipropietario(db, formulario)
 
         elif current_date < previous_date:
-            print('pasado')
             remove_from_multipropietario(db, same_year_current_form)
-            past_formularios: List[Formulario] = get_formularios_from_multipropietarios(same_year_current_form)
-            past_formularios.append(formulario)
-            sorted_formularios = sorted(list(past_formularios), key=lambda x: x.fecha_inscripcion)
+            sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, same_year_current_form)
             reprocess_formularios(db, handler, sorted_formularios)
 
         elif current_date == previous_date:
-            print('Misma fecha')
             if formulario.num_inscripcion > same_year_current_form[0].num_inscripcion:
                 Nivel0.add_form_to_multipropietario(db, formulario)
             elif formulario.num_inscripcion < same_year_current_form[0].num_inscripcion:
                 remove_from_multipropietario(db, same_year_current_form)
-                past_formularios: List[Formulario] = get_formularios_from_multipropietarios(same_year_current_form)
-                past_formularios.append(formulario)
-                sorted_formularios = sorted(list(past_formularios), key=lambda x: x.fecha_inscripcion)
+                sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, same_year_current_form)
                 reprocess_formularios(db, handler, sorted_formularios)
 
     @staticmethod
@@ -195,22 +188,18 @@ class Nivel1:
             db.session.add(multipropietario)
 
     @staticmethod
-    def sum_porc_derecho(lst):
+    def sum_porc_derecho(lst) -> float:
         sum_porc = sum(person.porc_derecho for person in lst)
         return sum_porc
 
     @staticmethod
-    def update_multipropietario_ano_final(db: SQLAlchemy, formulario: FormularioObject, multipropietario: Multipropietario):
+    def update_multipropietario_ano_final(db: SQLAlchemy, formulario: FormularioObject,
+                                          multipropietario: Multipropietario):
         if multipropietario.ano_vigencia_inicial < formulario.fecha_inscripcion.year:
-            # Set ano_vigencia_final to one year less than formulario.fecha_inscripcion
-            multipropietario.ano_vigencia_final = (
-                formulario.fecha_inscripcion.year - 1)
+            multipropietario.ano_vigencia_final = formulario.fecha_inscripcion.year - 1
         else:
-            # Set ano_vigencia_final to the same year as formulario.fecha_inscripcion
             if multipropietario.ano_vigencia_inicial == formulario.fecha_inscripcion.year:
                 remove_from_multipropietario(db, [multipropietario])
-            # multipropietario.ano_vigencia_final = formulario.fecha_inscripcion.year
-            # return multipropietario
 
     @staticmethod
     def update_multipropietario_into_new_multipropietarios(
