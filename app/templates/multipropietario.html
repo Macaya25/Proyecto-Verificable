@@ -27,8 +27,8 @@
                         {{ form.manzana(class="form-control", id="manzana") }}
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label" for="predio">Predio</label>
-                        <input type="text" class="form-control" id="predio" name="predio" placeholder="Predio">
+                        {{ form.predio.label(class="form-label") }}
+                        {{ form.predio(class="form-control", id="predio") }}
                     </div>
                     <div class="col-md-3">
                         {{ form.ano_vigencia.label(class="form-label") }}

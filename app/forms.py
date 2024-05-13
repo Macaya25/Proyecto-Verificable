@@ -12,6 +12,7 @@ class SearchForm(FlaskForm):
     region = SelectField('Región', coerce=int, validators=[DataRequired()])
     comuna = SelectField('Comuna', coerce=int, validators=[DataRequired()])
     manzana = StringField('Manzana', validators=[DataRequired()])
+    predio = StringField('Predio', validators=[DataRequired()])
     ano_vigencia = IntegerField('Año', validators=[DataRequired()])
     submit = SubmitField('Buscar')
 
