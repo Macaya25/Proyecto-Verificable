@@ -8,6 +8,13 @@ from models import CNE, Region
 def coerce_for_select_field(value):
     return int(value) if value is not None and value != '' else None
 
+class SearchForm(FlaskForm):
+    region = SelectField('Región', coerce=int, validators=[DataRequired()])
+    comuna = SelectField('Comuna', coerce=int, validators=[DataRequired()])
+    manzana = StringField('Manzana', validators=[DataRequired()])
+    ano_vigencia = IntegerField('Año', validators = [DataRequired()])
+    submit = SubmitField('Buscar')
+    
 class PersonaForm(FlaskForm):
     run_rut = StringField('RUN/RUT')
     porc_derecho = FloatField('% Derecho', validators=[NumberRange(min=0, max=100)])

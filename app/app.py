@@ -1,9 +1,11 @@
 import os
 import logging
 import json
+
+from sqlalchemy import and_, or_
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_wtf.csrf import CSRFProtect
-from forms import FormularioForm, JSONForm
+from forms import FormularioForm, JSONForm, SearchForm
 from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario, CNE, Comuna
 from tools import process_and_save_json_into_db, CONSTANTS
 from dotenv import load_dotenv
@@ -127,25 +129,30 @@ def obtener_descripcion_cne(cne_id):
 
 @app.route('/multipropietario', methods=['GET', 'POST'])
 def multipropietario_route():
-    form = FormularioForm()
+    form = SearchForm()
     search_results = []
+    if request.method == 'POST' :
+        comuna = request.form.get('comuna')
+        manzana = request.form.get('manzana')
+        predio = request.form.get('predio')
+        ano_vigencia = request.form.get('ano_vigencia')
+        search_results = Multipropietario.query.filter(
+        and_(
+            Multipropietario.comuna == comuna,
+            Multipropietario.manzana == manzana,
+            Multipropietario.predio == predio,
+            Multipropietario.ano_vigencia_inicial <= ano_vigencia,
+            or_(
+                Multipropietario.ano_vigencia_final >= ano_vigencia, 
+                Multipropietario.ano_vigencia_final.is_(None)
+            ) 
+        )
+    )   .all()
 
-    if request.method == 'POST' and form.validate_on_submit():
-        # Imprimir el contenido del formulario
-        app.logger.info('Formulario recibido: %s', form.data)
-
-        comuna = form.comuna.data
-        manzana = form.manzana.data
-        predio = form.predio.data
-        año = form.fecha_inscripcion.data.year
-
-        search_results = Multipropietario.query.filter_by(
-            comuna=comuna, manzana=manzana, predio=predio).filter(Multipropietario.ano_inscripcion >= año).all()
 
         return render_template('multipropietario.html', form=form, search_results=search_results)
-    else:
-        search_results = Multipropietario.query.all()
-        return render_template('multipropietario.html', form=form, search_results=search_results)
+    search_results = Multipropietario.query.all()
+    return render_template('multipropietario.html', form=form, search_results=search_results)
 
 
 @app.route('/comunas/<int:region_id>')

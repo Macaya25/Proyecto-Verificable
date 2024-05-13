@@ -5,12 +5,40 @@
     <h1>Busqueda Multipropietario</h1>
     <hr/>
     <form method="POST" action="/multipropietario" id="searchForm">
-        {{ form.csrf_token }}
-        <input type="text" id="comuna" name="comuna" placeholder="Comuna">
-        <input type="text" id="manzana" name="manzana" placeholder="Manzana">
-        <input type="text" id="predio" name="predio" placeholder="Predio">
-        <input type="text" id="ano" name="ano" placeholder="Año">
-        <button id="searchBtn" class="btn btn-outline-success" type="submit">Search</button>
+        <div hidden >  
+            {{form.csrf_token}}
+        </div>
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>Region</th>
+                    <th>Comuna</th>
+                    <th>Manzana</th>
+                    <th>Predio</th>
+                    <th>Año Vigencia</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <td>
+                    <input type="text" class="form-control" id="region-select" name="region" placeholder="Region">
+                </td>
+                <td>
+                    <input type="text" class="form-control" id="comuna" name="comuna" placeholder="Comuna">
+                </td>
+                <td>
+                    <input type="text" class="form-control" id="manzana" name="manzana" placeholder="Manzana">
+                </td>
+                <td>
+                    <input type="text" class="form-control" id="predio" name="predio" placeholder="Predio">
+                </td>
+                <td>
+                    <input type="text" class="form-control" id="ano_vigencia" name="ano_vigencia" placeholder="Año">
+                </td>
+                <td>
+                    <button id="searchButton" class="btn btn-outline-success" type="submit" >Search</button>
+                </td>
+            </tbody>
     </form>
 
     <br/>
@@ -31,63 +59,66 @@
                 <th>Año Vigencia Final</th>
             </tr>
         </thead>
-        <tbody id="resultsBody">
-        </tbody>
+        <tbody>
+            {% if search_results %}
+                {% for result in search_results %}
+                <tr>
+                    <td>{{ result.comuna }}</td>
+                    <td>{{ result.manzana }}</td>
+                    <td>{{ result.predio }}</td>
+                    <td>{{ result.run_rut }}</td>
+                    <td>{{ result.porc_derecho }}</td>
+                    <td>{{ result.fecha_inscripcion}}</td>
+                    <td>{{ result.ano_inscripcion}}</td>
+                    <td>{{ result.num_inscripcion}}</td>
+                    <td>{{ result.ano_vigencia_inicial}}</td>
+                    <td>{{ result.ano_vigencia_final}}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="10" style="text-align: center;">No se encontraron resultados.</td>
+                </tr>
+            {% endif %}
+                </tr>
+
     </table>
 </div>
 
-<script>
-document.getElementById("searchForm").addEventListener("submit", function(event) {
-    event.preventDefault(); // Evitar el envío del formulario por defecto
+<script>function updateComunas() {
+    var regionId = document.getElementById('region-select').value;
+    var comunaSelect = document.getElementById('comuna-select');
+    comunaSelect.innerHTML = '';
 
-    var comuna = document.getElementById("comuna").value;
-    var manzana = document.getElementById("manzana").value;
-    var predio = document.getElementById("predio").value;
-    var año = document.getElementById("ano").value;
-
-    // Enviar los datos del formulario al servidor utilizando AJAX
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/multipropietario", true);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-            if (xhr.status === 200) {
-                // Procesar los resultados de la búsqueda recibidos del servidor
-                var searchResults = JSON.parse(xhr.responseText).search_results;
-                updateResultsTable(searchResults);
-            } else {
-                console.error('Error al realizar la solicitud: ', xhr.status);
-            }
-        }
-    };
-    xhr.send("comuna=" + encodeURIComponent(comuna) + "&manzana=" + encodeURIComponent(manzana) + "&predio=" + encodeURIComponent(predio) + "&ano=" + encodeURIComponent(año));
-});
-
-function updateResultsTable(results) {
-    var tableBody = document.getElementById("resultsBody");
-    tableBody.innerHTML = ""; // Limpiar el contenido actual de la tabla
-    if (results && results.length > 0) {
-        results.forEach(function(result) {
-            var row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${result.comuna}</td>
-                <td>${result.manzana}</td>
-                <td>${result.predio}</td>
-                <td>${result.run_rut}</td>
-                <td>${result.porc_derechos}</td>
-                <td>${result.fecha_inscripcion}</td>
-                <td>${result.ano_inscripcion}</td>
-                <td>${result.num_inscripcion}</td>
-                <td>${result.ano_vigencia_inicial}</td>
-                <td>${result.ano_vigencia_final}</td>
-            `;
-            tableBody.appendChild(row);
+    if (regionId !== '') {
+        fetch('/comunas/' + regionId).then(function(response) {
+            response.json().then(function(data) {
+                var defaultOption = new Option('Seleccione Comuna', '');
+                comunaSelect.add(defaultOption);
+                data.forEach(function(comuna) {
+                    var option = new Option(comuna.descripcion, comuna.id);
+                    comunaSelect.add(option);
+                });
+            });
         });
     } else {
-        var noResultsRow = document.createElement("tr");
-        noResultsRow.innerHTML = '<td colspan="10" style="text-align: center;">No se encontraron resultados.</td>';
-        tableBody.appendChild(noResultsRow);
+        var defaultOption = new Option('Seleccione Comuna', '');
+        comunaSelect.add(defaultOption);
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    var regionSelect = document.getElementById('region-select');
+    var comunaSelect = document.getElementById('comuna-select');
+
+    regionSelect.addEventListener('change', function() {
+        comunaSelect.disabled = !this.value;
+        if (!this.value) {
+            comunaSelect.selectedIndex = 0; 
+        }
+    });
+
+    comunaSelect.disabled = !regionSelect.value;
+});
 </script>
 {% endblock %}
