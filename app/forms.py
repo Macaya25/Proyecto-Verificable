@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import (StringField, IntegerField, SubmitField, DateField, FieldList, FormField,
                      SelectField, FileField, FloatField)
 from wtforms.validators import DataRequired, NumberRange, InputRequired
-from models import CNE, Region
+from models import CNE, Region, Comuna
 
 
 def coerce_for_select_field(value):
@@ -12,9 +12,24 @@ class SearchForm(FlaskForm):
     region = SelectField('Región', coerce=int, validators=[DataRequired()])
     comuna = SelectField('Comuna', coerce=int, validators=[DataRequired()])
     manzana = StringField('Manzana', validators=[DataRequired()])
-    ano_vigencia = IntegerField('Año', validators = [DataRequired()])
+    ano_vigencia = IntegerField('Año', validators=[DataRequired()])
     submit = SubmitField('Buscar')
-    
+
+    def __init__(self, *args, **kwargs):
+        super(SearchForm, self).__init__(*args, **kwargs)
+        self.region.choices = [('', 'Seleccione Región')] + [(region.id, region.descripcion) for region in Region.query.order_by('descripcion').all()]
+        self.region.coerce = lambda value: int(value) if value is not None and value != '' else None
+        self.comuna.choices = [('', 'Seleccione Comuna')]
+        self.comuna.coerce = lambda value: int(value) if value is not None and value != '' else None
+        self.update_comunas()
+
+    def update_comunas(self):
+        region_id = self.region.data
+        if region_id:
+            self.comuna.choices = [(comuna.id, comuna.descripcion) for comuna in Comuna.query.filter_by(region_id=region_id).order_by('descripcion').all()]
+        else:
+            self.comuna.choices = [('', 'Seleccione Comuna')]
+
 class PersonaForm(FlaskForm):
     run_rut = StringField('RUN/RUT')
     porc_derecho = FloatField('% Derecho', validators=[NumberRange(min=0, max=100)])

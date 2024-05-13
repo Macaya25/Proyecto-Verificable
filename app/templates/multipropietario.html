@@ -2,120 +2,110 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1>Busqueda Multipropietario</h1>
-    <hr/>
-    <form method="POST" action="/multipropietario" id="searchForm">
-        <div hidden >  
-            {{form.csrf_token}}
+    <h1 class="mb-4">Búsqueda de Multipropietario</h1>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="card-title">Formulario de búsqueda</h2>
+            <form method="POST" action="/multipropietario" id="searchForm">
+                {{ form.hidden_tag() }}
+                <div hidden>
+                    {{ form.csrf_token }}
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        {{ form.region.label(class="form-label") }}
+                        {{ form.region(class="form-select", id="region-select") }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.comuna.label(class="form-label") }}
+                        {{ form.comuna(class="form-select", id="comuna-select") }}
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        {{ form.manzana.label(class="form-label") }}
+                        {{ form.manzana(class="form-control", id="manzana") }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="predio">Predio</label>
+                        <input type="text" class="form-control" id="predio" name="predio" placeholder="Predio">
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.ano_vigencia.label(class="form-label") }}
+                        {{ form.ano_vigencia(class="form-control", id="ano_vigencia") }}
+                    </div>
+                    <div class="col-md-3 align-self-end">
+                        <button id="searchButton" class="btn btn-primary" type="submit">Buscar</button>
+                    </div>
+                </div>
+            </form>
         </div>
-        <table class="table table-striped mt-3">
-            <thead>
-                <tr>
-                    <th>Region</th>
-                    <th>Comuna</th>
-                    <th>Manzana</th>
-                    <th>Predio</th>
-                    <th>Año Vigencia</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <td>
-                    <input type="text" class="form-control" id="region-select" name="region" placeholder="Region">
-                </td>
-                <td>
-                    <input type="text" class="form-control" id="comuna" name="comuna" placeholder="Comuna">
-                </td>
-                <td>
-                    <input type="text" class="form-control" id="manzana" name="manzana" placeholder="Manzana">
-                </td>
-                <td>
-                    <input type="text" class="form-control" id="predio" name="predio" placeholder="Predio">
-                </td>
-                <td>
-                    <input type="text" class="form-control" id="ano_vigencia" name="ano_vigencia" placeholder="Año">
-                </td>
-                <td>
-                    <button id="searchButton" class="btn btn-outline-success" type="submit" >Search</button>
-                </td>
-            </tbody>
-    </form>
+    </div>
 
-    <br/>
-    <br/>
-    <h1>Resultados</h1>
-    <table class="table table-striped mt-3" id="resultsTable">
-        <thead>
-            <tr>
-                <th>Comuna</th>
-                <th>Manzana</th>
-                <th>Predio</th>
-                <th>RUN</th>
-                <th>% Derecho</th>
-                <th>Fecha de Inscripción</th>
-                <th>Año de Inscripción</th>
-                <th>Número de Inscripción</th>
-                <th>Año Vigencia Inicial</th>
-                <th>Año Vigencia Final</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if search_results %}
-                {% for result in search_results %}
-                <tr>
-                    <td>{{ result.comuna }}</td>
-                    <td>{{ result.manzana }}</td>
-                    <td>{{ result.predio }}</td>
-                    <td>{{ result.run_rut }}</td>
-                    <td>{{ result.porc_derecho }}</td>
-                    <td>{{ result.fecha_inscripcion}}</td>
-                    <td>{{ result.ano_inscripcion}}</td>
-                    <td>{{ result.num_inscripcion}}</td>
-                    <td>{{ result.ano_vigencia_inicial}}</td>
-                    <td>{{ result.ano_vigencia_final}}</td>
-                </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="10" style="text-align: center;">No se encontraron resultados.</td>
-                </tr>
-            {% endif %}
-                </tr>
-
-    </table>
+    <div class="card mt-4 shadow-sm">
+        <div class="card-body">
+            <h2 class="card-title">Resultados</h2>
+            <div class="table-responsive">
+                <table class="table table-hover w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 10%;">Comuna</th>
+                            <th style="width: 10%;">Manzana</th>
+                            <th style="width: 10%;">Predio</th>
+                            <th style="width: 10%;">RUN</th>
+                            <th style="width: 10%;">% Derecho</th>
+                            <th style="width: 10%;">Fecha de Inscripción</th>
+                            <th style="width: 10%;">Año de Inscripción</th>
+                            <th style="width: 10%;">Número de Inscripción</th>
+                            <th style="width: 10%;">Año Vigencia Inicial</th>
+                            <th style="width: 10%;">Año Vigencia Final</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if search_results %}
+                            {% for result in search_results %}
+                            <tr>
+                                <td>{{ result.comuna }}</td>
+                                <td>{{ result.manzana }}</td>
+                                <td>{{ result.predio }}</td>
+                                <td>{{ result.run_rut }}</td>
+                                <td>{{ result.porc_derecho }}%</td>
+                                <td>{{ result.fecha_inscripcion }}</td>
+                                <td>{{ result.ano_inscripcion }}</td>
+                                <td>{{ result.num_inscripcion }}</td>
+                                <td>{{ result.ano_vigencia_inicial }}</td>
+                                <td>{{ result.ano_vigencia_final }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="10" class="text-center">No se encontraron resultados.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
-
-<script>function updateComunas() {
-    var regionId = document.getElementById('region-select').value;
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var regionSelect = document.getElementById('region-select');
     var comunaSelect = document.getElementById('comuna-select');
-    comunaSelect.innerHTML = '';
 
-    if (regionId !== '') {
-        fetch('/comunas/' + regionId).then(function(response) {
+    regionSelect.addEventListener('change', function() {
+        fetch('/comunas/' + this.value).then(function(response) {
             response.json().then(function(data) {
+                comunaSelect.innerHTML = '';
                 var defaultOption = new Option('Seleccione Comuna', '');
                 comunaSelect.add(defaultOption);
                 data.forEach(function(comuna) {
                     var option = new Option(comuna.descripcion, comuna.id);
                     comunaSelect.add(option);
                 });
+                comunaSelect.disabled = false;
             });
         });
-    } else {
-        var defaultOption = new Option('Seleccione Comuna', '');
-        comunaSelect.add(defaultOption);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    var regionSelect = document.getElementById('region-select');
-    var comunaSelect = document.getElementById('comuna-select');
-
-    regionSelect.addEventListener('change', function() {
-        comunaSelect.disabled = !this.value;
-        if (!this.value) {
-            comunaSelect.selectedIndex = 0; 
-        }
     });
 
     comunaSelect.disabled = !regionSelect.value;
