@@ -26,7 +26,7 @@ class SearchForm(FlaskForm):
     def update_comunas(self):
         region_id = self.region.data
         if region_id:
-            self.comuna.choices = [(comuna.id, comuna.descripcion) for comuna in Comuna.query.filter_by(region_id=region_id).order_by('descripcion').all()]
+            self.comuna.choices = [(comuna.id, comuna.descripcion) for comuna in Comuna.query.filter_by(id_region=region_id).order_by('descripcion').all()]
         else:
             self.comuna.choices = [('', 'Seleccione Comuna')]
 
