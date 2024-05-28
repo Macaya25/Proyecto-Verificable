@@ -1,7 +1,7 @@
 from typing import List, Set
 from datetime import date
 from models import Multipropietario, Adquirente, Enajenante, Formulario
-from tools import is_empty
+from tools import is_empty, CONSTANTS
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -25,16 +25,16 @@ def check_escenario(tabla_multipropietario: List[Multipropietario],
                     after_current_form: List[Multipropietario],
                     same_year_current_form: List[Multipropietario]) -> int:
     if is_empty(tabla_multipropietario):
-        return 1
+        return CONSTANTS.ESCENARIO1_VALUE
 
     if not is_empty(same_year_current_form):
-        return 4
+        return CONSTANTS.ESCENARIO4_VALUE
 
     if not is_empty(before_current_form) and is_empty(after_current_form):
-        return 2
+        return CONSTANTS.ESCENARIO2_VALUE
 
     if not is_empty(after_current_form):
-        return 3
+        return CONSTANTS.ESCENARIO3_VALUE
 
     else:
         return 0

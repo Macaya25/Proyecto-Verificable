@@ -6,8 +6,9 @@ from sqlalchemy import and_, or_
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_wtf.csrf import CSRFProtect
 from forms import FormularioForm, JSONForm, SearchForm
-from models import db, Formulario, Persona, Enajenante, Adquirente, Multipropietario, CNE, Comuna
-from tools import process_and_save_json_into_db, CONSTANTS
+from models import db, Formulario, Multipropietario, CNE, Comuna
+from tools import (CONSTANTS, process_and_save_json_into_db, add_adquirientes_to_database_from_form,
+                   add_formulario_to_database_from_form, add_enajenantes_to_database_from_form)
 from dotenv import load_dotenv
 from multipropietario.multipropietario_handler import MultipropietarioHandler
 
@@ -35,40 +36,18 @@ def index_route() -> str:
 @app.route('/form', methods=['GET', 'POST'])
 def form_route():
     form = FormularioForm()
+
+    # Add the comunas from database to the Formulario object to show on the Web UI as options
     form.comuna.choices = [(comuna.id, comuna.descripcion)
                            for comuna in Comuna.query.order_by('descripcion')]
+
     if request.method == 'POST' and form.validate_on_submit():
-        new_formulario = Formulario(
-            cne=form.cne.data,
-            comuna=form.comuna.data,
-            manzana=form.manzana.data,
-            predio=form.predio.data,
-            fojas=form.fojas.data,
-            fecha_inscripcion=form.fecha_inscripcion.data,
-            num_inscripcion=form.num_inscripcion.data
-        )
-        db.session.add(new_formulario)
+
+        new_formulario = add_formulario_to_database_from_form(db, form)
+        add_adquirientes_to_database_from_form(db, form, new_formulario)
 
         if form.cne.data == CONSTANTS.CNE_COMPRAVENTA.value:
-            for enajenante_data in form.enajenantes.data:
-                enajenante_persona = db.session.get(Persona, enajenante_data['run_rut'])
-                if not enajenante_persona:
-                    enajenante_persona = Persona(run_rut=enajenante_data['run_rut'])
-                    db.session.add(enajenante_persona)
-                new_enajenante = Enajenante(porc_derecho=enajenante_data['porc_derecho'],
-                                            persona=enajenante_persona,
-                                            formulario=new_formulario)
-                db.session.add(new_enajenante)
-
-        for adquirente_data in form.adquirentes.data:
-            adquirente_persona = db.session.get(Persona, adquirente_data['run_rut'])
-            if not adquirente_persona:
-                adquirente_persona = Persona(run_rut=adquirente_data['run_rut'])
-                db.session.add(adquirente_persona)
-            new_adquirente = Adquirente(porc_derecho=adquirente_data['porc_derecho'],
-                                        persona=adquirente_persona,
-                                        formulario=new_formulario)
-            db.session.add(new_adquirente)
+            add_enajenantes_to_database_from_form(db, form, new_formulario)
 
         converted_form = multiprop_handler.convert_form_into_object(form)
         multiprop_handler.process_new_formulario(converted_form)
@@ -131,24 +110,23 @@ def obtener_descripcion_cne(cne_id):
 def multipropietario_route():
     form = SearchForm()
     search_results = []
-    if request.method == 'POST' :
+    if request.method == 'POST':
         comuna = request.form.get('comuna')
         manzana = request.form.get('manzana')
         predio = request.form.get('predio')
         ano_vigencia = request.form.get('ano_vigencia')
         search_results = Multipropietario.query.filter(
-        and_(
-            Multipropietario.comuna == comuna,
-            Multipropietario.manzana == manzana,
-            Multipropietario.predio == predio,
-            Multipropietario.ano_vigencia_inicial <= ano_vigencia,
-            or_(
-                Multipropietario.ano_vigencia_final >= ano_vigencia, 
-                Multipropietario.ano_vigencia_final.is_(None)
-            ) 
-        )
-    )   .all()
-
+            and_(
+                Multipropietario.comuna == comuna,
+                Multipropietario.manzana == manzana,
+                Multipropietario.predio == predio,
+                Multipropietario.ano_vigencia_inicial <= ano_vigencia,
+                or_(
+                    Multipropietario.ano_vigencia_final >= ano_vigencia,
+                    Multipropietario.ano_vigencia_final.is_(None)
+                )
+            )
+        ).all()
 
         return render_template('multipropietario.html', form=form, search_results=search_results)
     search_results = Multipropietario.query.all()

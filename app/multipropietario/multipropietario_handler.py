@@ -8,8 +8,7 @@ from multipropietario.escenarios import Nivel0, Nivel1
 
 from models import db, Multipropietario, Enajenante, Adquirente, Formulario
 from forms import FormularioForm
-from tools import (
-    CONSTANTS)
+from tools import CONSTANTS
 
 
 class MultipropietarioHandler:
@@ -50,18 +49,18 @@ class MultipropietarioHandler:
                                             same_year_current_form)
 
         match current_escenario:
-            case 1:
+            case CONSTANTS.ESCENARIO1_VALUE:
                 print('E1')
                 Nivel0.escenario_1(db, formulario)
-            case 2:
+            case CONSTANTS.ESCENARIO2_VALUE:
                 print('E2')
                 Nivel0.escenario_2(db, formulario,
                                    before_current_form_query)
-            case 3:
+            case CONSTANTS.ESCENARIO3_VALUE:
                 print('E3')
                 Nivel0.escenario_3(self, db, formulario,
                                    after_current_form)
-            case 4:
+            case CONSTANTS.ESCENARIO4_VALUE:
                 print('E4')
                 Nivel0.escenario_4(self, db, formulario,
                                    same_year_current_form)
@@ -144,8 +143,7 @@ class MultipropietarioHandler:
                 reprocess_formularios(db, self, sorted_formularios)
 
             else:
-                Nivel1.escenario_2(formulario, db, tabla_multipropietario,
-                                   multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
+                Nivel1.escenario_2(formulario, db, multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
 
         elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
             if future_multipropietarios:
@@ -163,8 +161,7 @@ class MultipropietarioHandler:
                 reprocess_formularios(db, self, sorted_formularios)
 
             else:
-                Nivel1.escenario_4(formulario, db, tabla_multipropietario,
-                                   multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
+                Nivel1.escenario_4(formulario, db, tabla_multipropietario, multipropietarios_sin_enajenantes)
 
         # else:
         #     print("enajenante fantasma")

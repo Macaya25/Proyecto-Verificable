@@ -114,7 +114,7 @@ class Nivel1:
             db.session.add(multipropietario)
 
     @staticmethod
-    def escenario_2(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
+    def escenario_2(formulario: FormularioObject, db: SQLAlchemy,
                     multipropietarios_solo_enajenantes: List[Multipropietario],
                     multipropietarios_sin_enajenantes: List[Multipropietario]):
 
@@ -127,8 +127,7 @@ class Nivel1:
             db.session.add(new_multipropietario)
 
         for multipropietario in multipropietarios_solo_enajenantes:
-            Nivel1.update_multipropietario_ano_final(
-                db, formulario, multipropietario)
+            Nivel1.update_multipropietario_ano_final(db, formulario, multipropietario)
 
         if multipropietario.ano_vigencia_inicial != formulario.fecha_inscripcion.year:
             for multipropietario in multipropietarios_sin_enajenantes:
@@ -161,7 +160,6 @@ class Nivel1:
 
     @staticmethod
     def escenario_4(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
-                    multipropietarios_solo_enajenantes: List[Multipropietario],
                     multipropietarios_sin_enajenantes: List[Multipropietario]):
         # caso 4 else ADQ 1-99 ENA y ADQ !=1
         for previous_entry in tabla_multipropietario:
