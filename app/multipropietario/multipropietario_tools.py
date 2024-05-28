@@ -37,7 +37,7 @@ def check_escenario(tabla_multipropietario: List[Multipropietario],
         return CONSTANTS.ESCENARIO3_VALUE
 
     else:
-        return 0
+        return CONSTANTS.INVALID_ESCENARIO_VALUE
 
 
 def remove_from_multipropietario(db, entries_after_current_form: List[Multipropietario]):

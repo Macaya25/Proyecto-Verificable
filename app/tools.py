@@ -14,6 +14,7 @@ class CONSTANTS(Enum):
     ESCENARIO2_VALUE = 2
     ESCENARIO3_VALUE = 3
     ESCENARIO4_VALUE = 4
+    INVALID_ESCENARIO_VALUE = 0
 
 
 def process_and_save_json_into_db(db: SQLAlchemy, json_form) -> bool:
