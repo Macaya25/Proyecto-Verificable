@@ -12,7 +12,7 @@ from tools import CONSTANTS
 
 
 class MultipropietarioHandler:
-    def process_new_formulario(self, formulario: FormularioObject):
+    def process_new_formulario_object(self, formulario: FormularioObject):
         print('New formulario: ', formulario.num_inscripcion,
               formulario.fecha_inscripcion)
         if formulario.cne == CONSTANTS.CNE_REGULARIZACION.value:
@@ -68,18 +68,7 @@ class MultipropietarioHandler:
                 print('Escenario inesperado.')
 
     def nivel_1(self, formulario: FormularioObject):
-        def enajenante_fantasma():
-            if tabla_multipropietario is None or len(tabla_multipropietario) == 0:
-                print('No existe tabla')
-                return False
-            # Check if each enajenante.run_rut exists in run_ruts
-            for enajenante in formulario.enajenantes:
-                if enajenante.run_rut not in run_ruts:
-                    return False
-            # If all enajenantes are found, return True
-            return True
 
-        print('Nivel 1')
         query = Multipropietario.query.filter(
             and_(
                 Multipropietario.comuna == formulario.comuna,
@@ -104,24 +93,15 @@ class MultipropietarioHandler:
         future_multipropietarios: List[Multipropietario] = future_query.all()
 
         tabla_multipropietario: List[Multipropietario] = query.all()
-        run_ruts = {
-            multipropietario.run_rut for multipropietario in tabla_multipropietario}
+        # run_ruts = {
+        #     multipropietario.run_rut for multipropietario in tabla_multipropietario}
 
         # Create a list of run_ruts for all enajenantes
         enajenante_run_ruts = [
             enajenante.run_rut for enajenante in formulario.enajenantes]
 
-        # Create a new list of multipropietarios that are not enajenantes
-        multipropietarios_sin_enajenantes = [
-            multipropietario
-            for multipropietario in tabla_multipropietario
-            if multipropietario.run_rut not in enajenante_run_ruts
-        ]
-
-        multipropietarios_solo_enajenantes = [
-            multipropietario
-            for multipropietario in tabla_multipropietario
-            if multipropietario.run_rut in enajenante_run_ruts]
+        multi_sin_enajenantes, multi_solo_enajenantes = Nivel1.separate_multipropietario_enajenantes_from_multipropietario_list(
+            tabla_multipropietario, enajenante_run_ruts)
 
         # if enajenante_fantasma():
         sum_porc_adquirientes = Nivel1.sum_porc_derecho(formulario.adquirentes)
@@ -134,7 +114,7 @@ class MultipropietarioHandler:
 
             else:
                 Nivel1.escenario_1(formulario, db, tabla_multipropietario,
-                                   multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
+                                   multi_solo_enajenantes, multi_sin_enajenantes)
 
         elif sum_porc_adquirientes == 0:
             if future_multipropietarios:
@@ -143,7 +123,7 @@ class MultipropietarioHandler:
                 reprocess_formularios(db, self, sorted_formularios)
 
             else:
-                Nivel1.escenario_2(formulario, db, multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
+                Nivel1.escenario_2(formulario, db, multi_solo_enajenantes, multi_sin_enajenantes)
 
         elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
             if future_multipropietarios:
@@ -152,7 +132,7 @@ class MultipropietarioHandler:
                 reprocess_formularios(db, self, sorted_formularios)
             else:
                 Nivel1.escenario_3(formulario, db, tabla_multipropietario,
-                                   multipropietarios_solo_enajenantes, multipropietarios_sin_enajenantes)
+                                   multi_solo_enajenantes, multi_sin_enajenantes)
 
         else:
             if future_multipropietarios:
@@ -161,7 +141,7 @@ class MultipropietarioHandler:
                 reprocess_formularios(db, self, sorted_formularios)
 
             else:
-                Nivel1.escenario_4(formulario, db, tabla_multipropietario, multipropietarios_sin_enajenantes)
+                Nivel1.escenario_4(formulario, db, tabla_multipropietario, multi_sin_enajenantes)
 
         # else:
         #     print("enajenante fantasma")

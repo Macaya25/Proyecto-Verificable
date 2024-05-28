@@ -219,3 +219,32 @@ class Nivel1:
             ano_vigencia_inicial=ano_vigencia_inicial,
             ano_vigencia_final=ano_vigencia_final
         )
+
+    @staticmethod
+    def separate_multipropietario_enajenantes_from_multipropietario_list(
+            tabla_multipropietario: List[Multipropietario], enajenante_run_ruts):
+        # Create a new list of multipropietarios that are not enajenantes
+        multipropietarios_sin_enajenantes = [
+            multipropietario
+            for multipropietario in tabla_multipropietario
+            if multipropietario.run_rut not in enajenante_run_ruts
+        ]
+
+        multipropietarios_solo_enajenantes = [
+            multipropietario
+            for multipropietario in tabla_multipropietario
+            if multipropietario.run_rut in enajenante_run_ruts]
+
+        return multipropietarios_sin_enajenantes, multipropietarios_solo_enajenantes
+
+    @staticmethod
+    def enajenante_fantasma(tabla_multipropietario: List[Multipropietario], formulario: Formulario, run_ruts):
+        if tabla_multipropietario is None or len(tabla_multipropietario) == 0:
+            print('No existe tabla')
+            return False
+        # Check if each enajenante.run_rut exists in run_ruts
+        for enajenante in formulario.enajenantes:
+            if enajenante.run_rut not in run_ruts:
+                return False
+        # If all enajenantes are found, return True
+        return True

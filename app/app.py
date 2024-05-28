@@ -50,7 +50,7 @@ def form_route():
             add_enajenantes_to_database_from_form(db, form, new_formulario)
 
         converted_form = multiprop_handler.convert_form_into_object(form)
-        multiprop_handler.process_new_formulario(converted_form)
+        multiprop_handler.process_new_formulario_object(converted_form)
         db.session.commit()
         flash('Formulario registrado con éxito!')
         return redirect(url_for('forms_route'))
@@ -78,11 +78,11 @@ def form_json_route():
         if file.filename.endswith('.json'):
             file = json.loads(file.read().decode('utf-8'))
 
-            if process_and_save_json_into_db(db, file):
-                converted_forms_list = multiprop_handler.convert_json_into_object_list(
-                    file)
+            is_valid_json = process_and_save_json_into_db(db, file)
+            if is_valid_json:
+                converted_forms_list = multiprop_handler.convert_json_into_object_list(file)
                 for form in converted_forms_list:
-                    multiprop_handler.process_new_formulario(form)
+                    multiprop_handler.process_new_formulario_object(form)
                 db.session.commit()
 
             return redirect(url_for('forms_route'))
