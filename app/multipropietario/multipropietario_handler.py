@@ -2,8 +2,7 @@ from datetime import datetime
 from typing import List
 from sqlalchemy import asc, and_, or_
 from multipropietario.multipropietario_tools import (
-    FormularioObject, check_escenario, remove_from_multipropietario,
-    reprocess_formularios, add_formulario_with_multipropietarios_and_sort)
+    FormularioObject, check_escenario, remove_and_reprocess_multipropietarios)
 from multipropietario.escenarios import Nivel0, Nivel1
 
 from models import db, Multipropietario, Enajenante, Adquirente, Formulario
@@ -108,37 +107,28 @@ class MultipropietarioHandler:
 
         if sum_porc_adquirientes == 100:
             if future_multipropietarios:
-                remove_from_multipropietario(db, tabla_multipropietario)
-                sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, tabla_multipropietario)
-                reprocess_formularios(db, self, sorted_formularios)
-
+                remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
             else:
                 Nivel1.escenario_1(formulario, db, tabla_multipropietario,
                                    multi_solo_enajenantes, multi_sin_enajenantes)
 
         elif sum_porc_adquirientes == 0:
             if future_multipropietarios:
-                remove_from_multipropietario(db, tabla_multipropietario)
-                sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, tabla_multipropietario)
-                reprocess_formularios(db, self, sorted_formularios)
+                remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
 
             else:
                 Nivel1.escenario_2(formulario, db, multi_solo_enajenantes, multi_sin_enajenantes)
 
         elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
             if future_multipropietarios:
-                remove_from_multipropietario(db, tabla_multipropietario)
-                sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, tabla_multipropietario)
-                reprocess_formularios(db, self, sorted_formularios)
+                remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
             else:
                 Nivel1.escenario_3(formulario, db, tabla_multipropietario,
                                    multi_solo_enajenantes, multi_sin_enajenantes)
 
         else:
             if future_multipropietarios:
-                remove_from_multipropietario(db, tabla_multipropietario)
-                sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, tabla_multipropietario)
-                reprocess_formularios(db, self, sorted_formularios)
+                remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
 
             else:
                 Nivel1.escenario_4(formulario, db, tabla_multipropietario, multi_sin_enajenantes)
@@ -215,3 +205,23 @@ class MultipropietarioHandler:
         return FormularioObject(formulario.cne, formulario.comuna, formulario.manzana, formulario.predio,
                                 formulario.fojas, formulario.fecha_inscripcion, formulario.num_inscripcion,
                                 enajenantes, adquirentes)
+
+    def search_multipropietario(request):
+        comuna = request.form.get('comuna')
+        manzana = request.form.get('manzana')
+        predio = request.form.get('predio')
+        ano_vigencia = request.form.get('ano_vigencia')
+        search_results = Multipropietario.query.filter(
+            and_(
+                Multipropietario.comuna == comuna,
+                Multipropietario.manzana == manzana,
+                Multipropietario.predio == predio,
+                Multipropietario.ano_vigencia_inicial <= ano_vigencia,
+                or_(
+                    Multipropietario.ano_vigencia_final >= ano_vigencia,
+                    Multipropietario.ano_vigencia_final.is_(None)
+                )
+            )
+        ).all()
+
+        return search_results

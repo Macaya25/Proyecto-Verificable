@@ -8,6 +8,7 @@ from models import CNE, Region, Comuna
 def coerce_for_select_field(value):
     return int(value) if value is not None and value != '' else None
 
+
 class SearchForm(FlaskForm):
     region = SelectField('Región', coerce=int, validators=[DataRequired()])
     comuna = SelectField('Comuna', coerce=int, validators=[DataRequired()])
@@ -18,7 +19,8 @@ class SearchForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(SearchForm, self).__init__(*args, **kwargs)
-        self.region.choices = [('', 'Seleccione Región')] + [(region.id, region.descripcion) for region in Region.query.order_by('descripcion').all()]
+        self.region.choices = [('', 'Seleccione Región')] + [(region.id, region.descripcion)
+                                                             for region in Region.query.order_by('descripcion').all()]
         self.region.coerce = lambda value: int(value) if value is not None and value != '' else None
         self.comuna.choices = [('', 'Seleccione Comuna')]
         self.comuna.coerce = lambda value: int(value) if value is not None and value != '' else None
@@ -27,13 +29,16 @@ class SearchForm(FlaskForm):
     def update_comunas(self):
         region_id = self.region.data
         if region_id:
-            self.comuna.choices = [(comuna.id, comuna.descripcion) for comuna in Comuna.query.filter_by(id_region=region_id).order_by('descripcion').all()]
+            self.comuna.choices = [(comuna.id, comuna.descripcion)
+                                   for comuna in Comuna.query.filter_by(id_region=region_id).order_by('descripcion').all()]
         else:
             self.comuna.choices = [('', 'Seleccione Comuna')]
+
 
 class PersonaForm(FlaskForm):
     run_rut = StringField('RUN/RUT')
     porc_derecho = FloatField('% Derecho', validators=[NumberRange(min=0, max=100)])
+
 
 class FormularioForm(FlaskForm):
     cne = SelectField('CNE', coerce=int, validators=[DataRequired()])
@@ -56,9 +61,10 @@ class FormularioForm(FlaskForm):
         if self.cne.data in [1, 'compraventa']:
             self.enajenantes[0].form.id = 1
         else:
-            self.enajenantes[0].form.id = None     
-        self.cne.choices = [('', 'Seleccione CNE')] + [(cne.id, cne.descripcion) for cne in CNE.query.all()]                
-        self.region.choices = [('', 'Seleccione Región')] + [(region.id, region.descripcion) for region in Region.query.order_by('descripcion')]
+            self.enajenantes[0].form.id = None
+        self.cne.choices = [('', 'Seleccione CNE')] + [(cne.id, cne.descripcion) for cne in CNE.query.all()]
+        self.region.choices = [('', 'Seleccione Región')] + [(region.id, region.descripcion)
+                                                             for region in Region.query.order_by('descripcion')]
         self.comuna.choices = [('', 'Seleccione Comuna')]
 
         self.cne.coerce = coerce_for_select_field
@@ -73,7 +79,7 @@ class FormularioForm(FlaskForm):
             for subform in self.enajenantes:
                 subform.run_rut.data = None
                 subform.porc_derecho.data = None
-            is_valid = True  
+            is_valid = True
 
         return is_valid
 

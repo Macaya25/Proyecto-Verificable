@@ -1,14 +1,13 @@
 import os
 import logging
-import json
 
-from sqlalchemy import and_, or_
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_wtf.csrf import CSRFProtect
 from forms import FormularioForm, JSONForm, SearchForm
 from models import db, Formulario, Multipropietario, CNE, Comuna
-from tools import (CONSTANTS, process_and_save_json_into_db, add_adquirientes_to_database_from_form,
+from tools import (CONSTANTS, add_adquirientes_to_database_from_form,
                    add_formulario_to_database_from_form, add_enajenantes_to_database_from_form)
+from json_processing import (analyse_json_save_into_db_and_process_it)
 from dotenv import load_dotenv
 from multipropietario.multipropietario_handler import MultipropietarioHandler
 
@@ -73,22 +72,11 @@ def form_json_route():
     form = JSONForm()
 
     if form.validate_on_submit():
-        file = form.file.data
+        submitted_file = form.file.data
+        is_valid_json = analyse_json_save_into_db_and_process_it(db, multiprop_handler, submitted_file)
 
-        if file.filename.endswith('.json'):
-            file = json.loads(file.read().decode('utf-8'))
-
-            is_valid_json = process_and_save_json_into_db(db, file)
-            if is_valid_json:
-                converted_forms_list = multiprop_handler.convert_json_into_object_list(file)
-                for form in converted_forms_list:
-                    multiprop_handler.process_new_formulario_object(form)
-                db.session.commit()
-
+        if is_valid_json:
             return redirect(url_for('forms_route'))
-
-        else:
-            print('Archivo no es json.')
 
     return render_template('formJSON.html', form=form)
 
@@ -110,25 +98,11 @@ def obtener_descripcion_cne(cne_id):
 def multipropietario_route():
     form = SearchForm()
     search_results = []
-    if request.method == 'POST':
-        comuna = request.form.get('comuna')
-        manzana = request.form.get('manzana')
-        predio = request.form.get('predio')
-        ano_vigencia = request.form.get('ano_vigencia')
-        search_results = Multipropietario.query.filter(
-            and_(
-                Multipropietario.comuna == comuna,
-                Multipropietario.manzana == manzana,
-                Multipropietario.predio == predio,
-                Multipropietario.ano_vigencia_inicial <= ano_vigencia,
-                or_(
-                    Multipropietario.ano_vigencia_final >= ano_vigencia,
-                    Multipropietario.ano_vigencia_final.is_(None)
-                )
-            )
-        ).all()
 
+    if request.method == 'POST':
+        multiprop_handler.search_multipropietario(request)
         return render_template('multipropietario.html', form=form, search_results=search_results)
+
     search_results = Multipropietario.query.all()
     return render_template('multipropietario.html', form=form, search_results=search_results)
 

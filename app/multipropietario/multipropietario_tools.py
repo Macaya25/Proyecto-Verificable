@@ -45,6 +45,12 @@ def remove_from_multipropietario(db, entries_after_current_form: List[Multipropi
         db.session.delete(entry)
 
 
+def remove_and_reprocess_multipropietarios(db, handler, formulario, tabla_multipropietario):
+    remove_from_multipropietario(db, tabla_multipropietario)
+    sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, tabla_multipropietario)
+    reprocess_formularios(db, handler, sorted_formularios)
+
+
 def generate_multipropietario_entry_from_formulario(
         formulario: FormularioObject,
         rut: str, derecho: int) -> Multipropietario:
@@ -70,31 +76,34 @@ def generate_multipropietario_entry_from_formulario(
 def generate_formularios_json_from_multipropietario(entries: List[Multipropietario]):
     previous_forms = get_formularios_from_multipropietarios(entries)
     print('Previous: ', previous_forms)
-    json_forms = []
+    json_forms_list = []
 
     for f in previous_forms:
-        print('F: ', f)
-        current = {}
-        current['CNE'] = f.cne
-        current['bienRaiz'] = {'comuna': f.comuna,
-                               'manzana': f.manzana,
-                               'predio': f.predio}
-        current['fojas'] = f.fojas
-        current['fechaInscripcion'] = f.fecha_inscripcion.strftime("%Y-%m-%d")
-        current['nroInscripcion'] = f.num_inscripcion
+        current = generate_json_from_form(f)
+        json_forms_list.append(current)
 
-        adquirentes: List[Adquirente] = Adquirente.query.filter_by(
-            form_id=f.n_atencion).all()
-        adquirentes_list = []
+    return {'F2890': json_forms_list}
 
-        for a in adquirentes:
-            adquirentes_list.append(
-                {'RUNRUT': a.run_rut, 'porcDerecho': a.porc_derecho})
-        current['adquirentes'] = adquirentes_list
 
-        json_forms.append(current)
+def generate_json_from_form(f):
+    current = {}
+    current['CNE'] = f.cne
+    current['bienRaiz'] = {'comuna': f.comuna,
+                           'manzana': f.manzana,
+                           'predio': f.predio}
+    current['fojas'] = f.fojas
+    current['fechaInscripcion'] = f.fecha_inscripcion.strftime("%Y-%m-%d")
+    current['nroInscripcion'] = f.num_inscripcion
 
-    return {'F2890': json_forms}
+    adquirentes: List[Adquirente] = Adquirente.query.filter_by(form_id=f.n_atencion).all()
+    adquirentes_list = []
+
+    for a in adquirentes:
+        adquirentes_list.append(
+            {'RUNRUT': a.run_rut, 'porcDerecho': a.porc_derecho})
+    current['adquirentes'] = adquirentes_list
+
+    return current
 
 
 def get_formularios_from_multipropietarios(entries: List[Multipropietario]) -> List[Formulario]:
@@ -111,11 +120,14 @@ def get_formularios_from_multipropietarios(entries: List[Multipropietario]) -> L
 
 
 def reprocess_future_multipropietarios(db: SQLAlchemy, handler, future_multipropietarios: List[Multipropietario]):
-    future_formularios = get_formularios_from_multipropietarios(
-        future_multipropietarios)
-    future_formulario_objects: List[FormularioObject] = list(map(handler.convert_formulario_into_object,
-                                                                 future_formularios))
+    future_formularios = get_formularios_from_multipropietarios(future_multipropietarios)
+    future_formulario_objects: List[FormularioObject] = convert_formularios_to_formulario_objects(handler, future_formularios)
     reprocess_formularios(db, handler, future_formulario_objects)
+
+
+def convert_formularios_to_formulario_objects(handler, formularios: List[Formulario]):
+    formulario_objects: List[FormularioObject] = list(map(handler.convert_formulario_into_object, formularios))
+    return formulario_objects
 
 
 def reprocess_formularios(db: SQLAlchemy, handler, formularios: List[Formulario]):
