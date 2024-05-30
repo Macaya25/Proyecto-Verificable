@@ -33,7 +33,7 @@ def index_route() -> str:
 
 
 @app.route('/form', methods=['GET', 'POST'])
-def form_route():
+def create_new_form_route():
     form = FormularioForm()
 
     # Add the comunas from database to the Formulario object to show on the Web UI as options

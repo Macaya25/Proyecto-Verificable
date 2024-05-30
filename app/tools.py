@@ -14,6 +14,9 @@ class CONSTANTS(Enum):
     ESCENARIO4_VALUE = 4
     INVALID_ESCENARIO_VALUE = 0
 
+    JSON_FILE_EXTENTION = '.json'
+    ENCODING_FORMAT = 'utf-8'
+
 
 def is_empty(lst: list):
     return not bool(lst)

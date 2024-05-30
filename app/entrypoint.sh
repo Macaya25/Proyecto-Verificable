@@ -24,5 +24,6 @@ wait_for_port "MySQL" "$MYSQL_HOST" "$MYSQL_PORT"
 
 echo "Starting Software_verificable app..."
 
+python seed.py
 
 python app.py

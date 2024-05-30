@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from models import Formulario, Enajenante, Adquirente, Persona, Comuna
+from tools import CONSTANTS
 from typing import List
 from dateutil.parser import parse
 import json
@@ -22,8 +23,8 @@ def process_and_save_json_into_db(db: SQLAlchemy, json_form) -> bool:
 
 
 def analyse_json_save_into_db_and_process_it(db: SQLAlchemy, multiprop_handler, submitted_file):
-    if submitted_file.filename.endswith('.json'):
-        submitted_file = json.loads(submitted_file.read().decode('utf-8'))
+    if submitted_file.filename.endswith(CONSTANTS.JSON_FILE_EXTENTION):
+        submitted_file = json.loads(submitted_file.read().decode(CONSTANTS.ENCODING_FORMAT))
 
         is_valid_json = process_and_save_json_into_db(db, submitted_file)
         if is_valid_json:

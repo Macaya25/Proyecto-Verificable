@@ -6,7 +6,7 @@ from multipropietario.multipropietario_tools import (
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Query
 from models import Multipropietario, Formulario
-from tools import process_and_save_json_into_db
+from json_processing import process_and_save_json_into_db
 
 
 class Regularizacion_Patrimonio:
