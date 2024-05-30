@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import asc, and_, or_
 from multipropietario.multipropietario_tools import (
     FormularioObject, check_escenario, remove_and_reprocess_multipropietarios)
-from multipropietario.escenarios import Nivel0, Nivel1
+from multipropietario.escenarios import Regularizacion_Patrimonio, CompraVenta
 
 from models import db, Multipropietario, Enajenante, Adquirente, Formulario
 from forms import FormularioForm
@@ -12,18 +12,18 @@ from tools import CONSTANTS
 
 class MultipropietarioHandler:
     def process_new_formulario_object(self, formulario: FormularioObject):
-        print('New formulario: ', formulario.num_inscripcion,
-              formulario.fecha_inscripcion)
+        print('New formulario: ', formulario.num_inscripcion, formulario.fecha_inscripcion)
+
         if formulario.cne == CONSTANTS.CNE_REGULARIZACION.value:
-            print("Nivel 0")
-            self.nivel_0(formulario)
+            self.process_regularizacion_patrimonio(formulario)
+
         elif formulario.cne == CONSTANTS.CNE_COMPRAVENTA.value:
-            print("Nivel 1")
-            self.nivel_1(formulario)
+            self.process_compraventa(formulario)
+
         else:
             print(f"Nivel inesperado: {formulario.cne}")
 
-    def nivel_0(self, formulario: FormularioObject):
+    def process_regularizacion_patrimonio(self, formulario: FormularioObject):
         query = Multipropietario.query.filter_by(
             comuna=formulario.comuna,
             manzana=formulario.manzana,
@@ -50,23 +50,20 @@ class MultipropietarioHandler:
         match current_escenario:
             case CONSTANTS.ESCENARIO1_VALUE:
                 print('E1')
-                Nivel0.escenario_1(db, formulario)
+                Regularizacion_Patrimonio.escenario_1(db, formulario)
             case CONSTANTS.ESCENARIO2_VALUE:
                 print('E2')
-                Nivel0.escenario_2(db, formulario,
-                                   before_current_form_query)
+                Regularizacion_Patrimonio.escenario_2(db, formulario, before_current_form_query)
             case CONSTANTS.ESCENARIO3_VALUE:
                 print('E3')
-                Nivel0.escenario_3(self, db, formulario,
-                                   after_current_form)
+                Regularizacion_Patrimonio.escenario_3(self, db, formulario, after_current_form)
             case CONSTANTS.ESCENARIO4_VALUE:
                 print('E4')
-                Nivel0.escenario_4(self, db, formulario,
-                                   same_year_current_form)
+                Regularizacion_Patrimonio.escenario_4(self, db, formulario, same_year_current_form)
             case _:
                 print('Escenario inesperado.')
 
-    def nivel_1(self, formulario: FormularioObject):
+    def process_compraventa(self, formulario: FormularioObject):
 
         query = Multipropietario.query.filter(
             and_(
@@ -99,39 +96,38 @@ class MultipropietarioHandler:
         enajenante_run_ruts = [
             enajenante.run_rut for enajenante in formulario.enajenantes]
 
-        multi_sin_enajenantes, multi_solo_enajenantes = Nivel1.separate_multipropietario_enajenantes_from_multipropietario_list(
+        multi_sin_enajenantes, multi_solo_enajenantes = CompraVenta.separate_multipropietario_enajenantes_from_multipropietario_list(
             tabla_multipropietario, enajenante_run_ruts)
 
         # if enajenante_fantasma():
-        sum_porc_adquirientes = Nivel1.sum_porc_derecho(formulario.adquirentes)
+        sum_porc_adquirientes = CompraVenta.sum_porc_derecho(formulario.adquirentes)
 
         if sum_porc_adquirientes == 100:
             if future_multipropietarios:
                 remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
             else:
-                Nivel1.escenario_1(formulario, db, tabla_multipropietario,
-                                   multi_solo_enajenantes, multi_sin_enajenantes)
+                CompraVenta.escenario_1(formulario, db, tabla_multipropietario,
+                                        multi_solo_enajenantes, multi_sin_enajenantes)
 
         elif sum_porc_adquirientes == 0:
             if future_multipropietarios:
                 remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
 
             else:
-                Nivel1.escenario_2(formulario, db, multi_solo_enajenantes, multi_sin_enajenantes)
+                CompraVenta.escenario_2(formulario, db, multi_solo_enajenantes, multi_sin_enajenantes)
 
         elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
             if future_multipropietarios:
                 remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
             else:
-                Nivel1.escenario_3(formulario, db, tabla_multipropietario,
-                                   multi_solo_enajenantes, multi_sin_enajenantes)
+                CompraVenta.escenario_3(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
 
         else:
             if future_multipropietarios:
                 remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
 
             else:
-                Nivel1.escenario_4(formulario, db, tabla_multipropietario, multi_sin_enajenantes)
+                CompraVenta.escenario_4(formulario, db, tabla_multipropietario, multi_sin_enajenantes)
 
         # else:
         #     print("enajenante fantasma")
