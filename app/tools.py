@@ -1,10 +1,9 @@
-from enum import Enum
 from models import Formulario, Enajenante, Adquirente, Persona
 from flask_sqlalchemy import SQLAlchemy
 from forms import FormularioForm
 
 
-class CONSTANTS(Enum):
+class CONSTANTS:
     CNE_REGULARIZACION = 99
     CNE_COMPRAVENTA = 8
 
@@ -14,6 +13,8 @@ class CONSTANTS(Enum):
     ESCENARIO4_VALUE = 4
     INVALID_ESCENARIO_VALUE = 0
 
+
+class FILEPROPERTIES:
     JSON_FILE_EXTENTION = '.json'
     ENCODING_FORMAT = 'utf-8'
 

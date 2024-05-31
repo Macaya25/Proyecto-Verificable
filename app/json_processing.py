@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from models import Formulario, Enajenante, Adquirente, Persona, Comuna
-from tools import CONSTANTS
+from tools import FILEPROPERTIES
 from typing import List
 from dateutil.parser import parse
 import json
@@ -15,16 +15,17 @@ def process_and_save_json_into_db(db: SQLAlchemy, json_form) -> bool:
         new_form: Formulario = Formulario()
 
         __parse_json_and_save_form_in_db(db, new_form, single_form)
+
         __parse_json_and_save_enajenantes_in_db(db, single_form, new_form.n_atencion)
         __parse_json_and_save_adquirientes_in_db(db, single_form, new_form.n_atencion)
-
         db.session.commit()
+
     return True
 
 
 def analyse_json_save_into_db_and_process_it(db: SQLAlchemy, multiprop_handler, submitted_file):
-    if submitted_file.filename.endswith(CONSTANTS.JSON_FILE_EXTENTION):
-        submitted_file = json.loads(submitted_file.read().decode(CONSTANTS.ENCODING_FORMAT))
+    if submitted_file.filename.endswith(FILEPROPERTIES.JSON_FILE_EXTENTION):
+        submitted_file = json.loads(submitted_file.read().decode(FILEPROPERTIES.ENCODING_FORMAT))
 
         is_valid_json = process_and_save_json_into_db(db, submitted_file)
         if is_valid_json:
@@ -78,8 +79,9 @@ def __parse_json_and_set_form(db: SQLAlchemy, new_form: Formulario, current_form
 
 
 def __parse_json_and_save_form_in_db(db: SQLAlchemy, new_form, single_form):
-    __parse_json_and_set_form(new_form, single_form)
+    __parse_json_and_set_form(db, new_form, single_form)
     db.session.add(new_form)
+    db.session.commit()
 
 
 def __parse_json_and_get_enajenantes(db: SQLAlchemy, current_form):
@@ -110,7 +112,7 @@ def __parse_json_and_get_enajenantes(db: SQLAlchemy, current_form):
 
 
 def __parse_json_and_save_enajenantes_in_db(db: SQLAlchemy, single_form, new_form_id):
-    enajenantes: List[Enajenante] = __parse_json_and_get_enajenantes(single_form)
+    enajenantes: List[Enajenante] = __parse_json_and_get_enajenantes(db, single_form)
 
     for single_enajenante in enajenantes:
         single_enajenante.form_id = new_form_id
@@ -118,7 +120,7 @@ def __parse_json_and_save_enajenantes_in_db(db: SQLAlchemy, single_form, new_for
 
 
 def __parse_json_and_save_adquirientes_in_db(db: SQLAlchemy, single_form, new_form_id):
-    adquirientes: List[Adquirente] = __parse_json_and_get_adquirentes(single_form)
+    adquirientes: List[Adquirente] = __parse_json_and_get_adquirentes(db, single_form)
 
     for single_adquiriente in adquirientes:
         single_adquiriente.form_id = new_form_id

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 from sqlalchemy import asc, and_, or_
 from multipropietario.multipropietario_tools import (
-    FormularioObject, check_escenario, remove_and_reprocess_multipropietarios)
+    FormularioObject, check_escenario, reprocess_all_multipropietario_table)
 from multipropietario.escenarios import Regularizacion_Patrimonio, CompraVenta
 
 from models import db, Multipropietario, Enajenante, Adquirente, Formulario
@@ -14,10 +14,10 @@ class MultipropietarioHandler:
     def process_new_formulario_object(self, formulario: FormularioObject):
         print('New formulario: ', formulario.num_inscripcion, formulario.fecha_inscripcion)
 
-        if formulario.cne == CONSTANTS.CNE_REGULARIZACION.value:
+        if formulario.cne == CONSTANTS.CNE_REGULARIZACION:
             self.process_regularizacion_patrimonio(formulario)
 
-        elif formulario.cne == CONSTANTS.CNE_COMPRAVENTA.value:
+        elif formulario.cne == CONSTANTS.CNE_COMPRAVENTA:
             self.process_compraventa(formulario)
 
         else:
@@ -50,13 +50,18 @@ class MultipropietarioHandler:
         match current_escenario:
             case CONSTANTS.ESCENARIO1_VALUE:
                 print('E1')
-                Regularizacion_Patrimonio.escenario_1(db, formulario)
+                Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
+
             case CONSTANTS.ESCENARIO2_VALUE:
                 print('E2')
-                Regularizacion_Patrimonio.escenario_2(db, formulario, before_current_form_query)
+                Regularizacion_Patrimonio.limit_date_of_last_entries_from_multipropietario(formulario, before_current_form_query)
+                Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
+
             case CONSTANTS.ESCENARIO3_VALUE:
                 print('E3')
-                Regularizacion_Patrimonio.escenario_3(self, db, formulario, after_current_form)
+
+                reprocess_all_multipropietario_table(db, self, formulario, tabla_multipropietario)
+
             case CONSTANTS.ESCENARIO4_VALUE:
                 print('E4')
                 Regularizacion_Patrimonio.escenario_4(self, db, formulario, same_year_current_form)
@@ -104,27 +109,27 @@ class MultipropietarioHandler:
 
         if sum_porc_adquirientes == 100:
             if future_multipropietarios:
-                remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
+                reprocess_all_multipropietario_table(db, self, formulario, tabla_multipropietario)
             else:
                 CompraVenta.escenario_1(formulario, db, tabla_multipropietario,
                                         multi_solo_enajenantes, multi_sin_enajenantes)
 
         elif sum_porc_adquirientes == 0:
             if future_multipropietarios:
-                remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
+                reprocess_all_multipropietario_table(db, self, formulario, tabla_multipropietario)
 
             else:
                 CompraVenta.escenario_2(formulario, db, multi_solo_enajenantes, multi_sin_enajenantes)
 
         elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
             if future_multipropietarios:
-                remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
+                reprocess_all_multipropietario_table(db, self, formulario, tabla_multipropietario)
             else:
                 CompraVenta.escenario_3(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
 
         else:
             if future_multipropietarios:
-                remove_and_reprocess_multipropietarios(db, self, formulario, tabla_multipropietario)
+                reprocess_all_multipropietario_table(db, self, formulario, tabla_multipropietario)
 
             else:
                 CompraVenta.escenario_4(formulario, db, tabla_multipropietario, multi_sin_enajenantes)

@@ -28,12 +28,12 @@ multiprop_handler = MultipropietarioHandler()
 
 
 @app.route('/')
-def index_route() -> str:
-    return render_template('index.html')
+def home_route() -> str:
+    return render_template('home.html')
 
 
 @app.route('/form', methods=['GET', 'POST'])
-def create_new_form_route():
+def create_form_route():
     form = FormularioForm()
 
     # Add the comunas from database to the Formulario object to show on the Web UI as options
@@ -52,23 +52,23 @@ def create_new_form_route():
         multiprop_handler.process_new_formulario_object(converted_form)
         db.session.commit()
         flash('Formulario registrado con éxito!')
-        return redirect(url_for('forms_route'))
+        return redirect(url_for('show_all_forms_route'))
     else:
         print(form.errors)
 
-    return render_template('form.html', form=form)
+    return render_template('create_form.html', form=form)
 
 
 @app.route('/forms')
-def forms_route():
+def show_all_forms_route():
     forms = Formulario.query.all()
     cnes = {cne.id: cne for cne in CNE.query.all()}
     comunas = {comuna.id: comuna for comuna in Comuna.query.all()}
-    return render_template('forms.html', forms=forms, cnes=cnes, comunas=comunas)
+    return render_template('show_all_forms.html', forms=forms, cnes=cnes, comunas=comunas)
 
 
 @app.route('/form/json', methods=['GET', 'POST'])
-def form_json_route():
+def create_json_form_route():
     form = JSONForm()
 
     if form.validate_on_submit():
@@ -76,9 +76,9 @@ def form_json_route():
         is_valid_json = analyse_json_save_into_db_and_process_it(db, multiprop_handler, submitted_file)
 
         if is_valid_json:
-            return redirect(url_for('forms_route'))
+            return redirect(url_for('show_all_forms_route'))
 
-    return render_template('formJSON.html', form=form)
+    return render_template('create_form_JSON.html', form=form)
 
 
 @app.route('/forms/<int:n_atencion>')

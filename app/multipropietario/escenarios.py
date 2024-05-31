@@ -1,8 +1,7 @@
 from typing import List
 from multipropietario.multipropietario_tools import (
     generate_multipropietario_entry_from_formulario, FormularioObject,
-    remove_from_multipropietario, generate_formularios_json_from_multipropietario,
-    reprocess_formularios, add_formulario_with_multipropietarios_and_sort)
+    remove_from_multipropietario, reprocess_formularios, add_formulario_with_multipropietarios_and_sort)
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Query
 from models import Multipropietario, Formulario
@@ -10,31 +9,6 @@ from json_processing import process_and_save_json_into_db
 
 
 class Regularizacion_Patrimonio:
-    @staticmethod
-    def escenario_1(db: SQLAlchemy, formulario: FormularioObject):
-        Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
-
-    @staticmethod
-    def escenario_2(db: SQLAlchemy, formulario: FormularioObject, query: Query[Multipropietario]):
-        last_entries = query.filter_by(ano_vigencia_final=None).all()
-        for entry in last_entries:
-            if entry.ano_vigencia_final is None:
-                entry.ano_vigencia_final = formulario.fecha_inscripcion.year - 1
-
-        Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
-
-    @staticmethod
-    def escenario_3(handler, db: SQLAlchemy, formulario: FormularioObject,
-                    entries_after_current_form: List[Multipropietario]):
-        json_to_reprocess: dict = generate_formularios_json_from_multipropietario(
-            entries_after_current_form)
-
-        remove_from_multipropietario(db, entries_after_current_form)
-
-        Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
-
-        Regularizacion_Patrimonio.remove_formularios_given_json(db, json_to_reprocess)
-        Regularizacion_Patrimonio.reprocess_json(handler, db, json_to_reprocess)
 
     @staticmethod
     def escenario_4(handler, db: SQLAlchemy, formulario: FormularioObject,
@@ -49,17 +23,24 @@ class Regularizacion_Patrimonio:
             Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
 
         elif current_date < previous_date:
-            remove_from_multipropietario(db, same_year_current_form)
+
             sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, same_year_current_form)
             reprocess_formularios(db, handler, sorted_formularios)
 
         elif current_date == previous_date:
             if formulario.num_inscripcion > same_year_current_form[0].num_inscripcion:
                 Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
+
             elif formulario.num_inscripcion < same_year_current_form[0].num_inscripcion:
-                remove_from_multipropietario(db, same_year_current_form)
                 sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, same_year_current_form)
                 reprocess_formularios(db, handler, sorted_formularios)
+
+    @staticmethod
+    def limit_date_of_last_entries_from_multipropietario(formulario: FormularioObject, query: Query):
+        last_entries = query.filter_by(ano_vigencia_final=None).all()
+        for entry in last_entries:
+            if entry.ano_vigencia_final is None:
+                entry.ano_vigencia_final = formulario.fecha_inscripcion.year - 1
 
     @staticmethod
     def add_form_to_multipropietario(db: SQLAlchemy, formulario: FormularioObject):

@@ -45,7 +45,7 @@ def remove_from_multipropietario(db, entries_after_current_form: List[Multipropi
         db.session.delete(entry)
 
 
-def remove_and_reprocess_multipropietarios(db, handler, formulario, tabla_multipropietario):
+def reprocess_all_multipropietario_table(db, handler, formulario, tabla_multipropietario):
     remove_from_multipropietario(db, tabla_multipropietario)
     sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, tabla_multipropietario)
     reprocess_formularios(db, handler, sorted_formularios)
@@ -71,18 +71,6 @@ def generate_multipropietario_entry_from_formulario(
         ano_vigencia_inicial=ano_vigencia_inicial,
         ano_vigencia_final=ano_vigencia_final
     )
-
-
-def generate_formularios_json_from_multipropietario(entries: List[Multipropietario]):
-    previous_forms = get_formularios_from_multipropietarios(entries)
-    print('Previous: ', previous_forms)
-    json_forms_list = []
-
-    for f in previous_forms:
-        current = generate_json_from_form(f)
-        json_forms_list.append(current)
-
-    return {'F2890': json_forms_list}
 
 
 def generate_json_from_form(f):
