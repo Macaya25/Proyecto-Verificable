@@ -45,10 +45,15 @@ def remove_from_multipropietario(db, entries_after_current_form: List[Multipropi
         db.session.delete(entry)
 
 
-def reprocess_all_multipropietario_table(db, handler, formulario, tabla_multipropietario):
-    remove_from_multipropietario(db, tabla_multipropietario)
-    sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, tabla_multipropietario)
+def reprocess_multipropietario_entries_with_new_formulario(db, handler, formulario, entries: List[Multipropietario]):
+    remove_from_multipropietario(db, entries)
+    sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, entries)
     reprocess_formularios(db, handler, sorted_formularios)
+
+
+def reprocess_multipropietario_entries(db, handler, entries: List[Multipropietario]):
+    formularios = get_formularios_from_multipropietarios(entries)
+    reprocess_formularios(db, handler, formularios)
 
 
 def generate_multipropietario_entry_from_formulario(
