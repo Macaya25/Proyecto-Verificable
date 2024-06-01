@@ -52,26 +52,6 @@ class Regularizacion_Patrimonio:
                 formulario, rut_adquiriente, porc_derecho_adquiriente)
             db.session.add(new_multipropietario)
 
-    @staticmethod
-    def reprocess_json(handler, db: SQLAlchemy, json_to_reprocess):
-        if process_and_save_json_into_db(db, json_to_reprocess):
-            converted_forms_list = handler.convert_json_into_object_list(json_to_reprocess)
-            for form in converted_forms_list:
-                handler.process_new_form(form)
-
-    @staticmethod
-    def remove_formularios_given_json(db: SQLAlchemy, json_to_reprocess):
-        for form in json_to_reprocess['F2890']:
-            rol = form['bienRaiz']
-            forms_to_delete: List[Formulario] = Formulario.query.filter_by(
-                cne=form['CNE'], fojas=form['fojas'],
-                comuna=rol['comuna'], manzana=rol['manzana'], predio=rol['predio'],
-                fecha_inscripcion=form['fechaInscripcion'], num_inscripcion=form['nroInscripcion']).all()
-            for f in forms_to_delete:
-                db.session.delete(f)
-
-        db.session.commit()
-
 
 class CompraVenta:
     @staticmethod
@@ -83,12 +63,10 @@ class CompraVenta:
         for adquirente in formulario.adquirentes:
             porc_derech_nuevo = (
                 (adquirente.porc_derecho * CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
-            new_multipropietario = generate_multipropietario_entry_from_formulario(
-                formulario, adquirente.run_rut, porc_derech_nuevo)
+            new_multipropietario = generate_multipropietario_entry_from_formulario(formulario, adquirente.run_rut, porc_derech_nuevo)
             db.session.add(new_multipropietario)
         for multipropietario in tabla_multipropietario:
-            CompraVenta.update_multipropietario_ano_final(
-                db, formulario, multipropietario)
+            CompraVenta.update_multipropietario_ano_final(db, formulario, multipropietario)
 
         for multipropietario in multipropietarios_sin_enajenantes:
             multipropietario = CompraVenta.update_multipropietario_into_new_multipropietarios(multipropietario, formulario)
