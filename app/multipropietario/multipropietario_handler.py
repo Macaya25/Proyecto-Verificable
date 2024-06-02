@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import asc, and_, or_
 from multipropietario.multipropietario_tools import (
     FormularioObject, reprocess_multipropietario_entries_with_new_formulario,
-    remove_from_multipropietario, reprocess_multipropietario_entries)
+    remove_from_multipropietario, reprocess_multipropietario_entries, limit_date_of_last_entries_from_multipropietario)
 from multipropietario.F2890 import Regularizacion_Patrimonio, CompraVenta
 
 from models import db, Multipropietario, Enajenante, Adquirente, Formulario
@@ -56,7 +56,7 @@ class MultipropietarioHandler:
 
             case CONSTANTS.ESCENARIO2_VALUE:
                 print('E2')
-                Regularizacion_Patrimonio.limit_date_of_last_entries_from_multipropietario(formulario, before_current_form)
+                limit_date_of_last_entries_from_multipropietario(formulario, before_current_form)
                 Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
 
             case CONSTANTS.ESCENARIO3_VALUE:
