@@ -1,7 +1,6 @@
 from typing import List, Set
 from datetime import date
 from models import Multipropietario, Adquirente, Enajenante, Formulario
-from tools import is_empty, CONSTANTS
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -18,26 +17,6 @@ class FormularioObject:
         self.num_inscripcion = num_inscripcion
         self.enajenantes = enajenantes
         self.adquirentes = adquirentes
-
-
-def check_escenario(tabla_multipropietario: List[Multipropietario],
-                    before_current_form: List[Multipropietario],
-                    after_current_form: List[Multipropietario],
-                    same_year_current_form: List[Multipropietario]) -> int:
-    if is_empty(tabla_multipropietario):
-        return CONSTANTS.ESCENARIO1_VALUE
-
-    if not is_empty(same_year_current_form):
-        return CONSTANTS.ESCENARIO4_VALUE
-
-    if not is_empty(before_current_form) and is_empty(after_current_form):
-        return CONSTANTS.ESCENARIO2_VALUE
-
-    if not is_empty(after_current_form):
-        return CONSTANTS.ESCENARIO3_VALUE
-
-    else:
-        return CONSTANTS.INVALID_ESCENARIO_VALUE
 
 
 def remove_from_multipropietario(db, entries_after_current_form: List[Multipropietario]):
@@ -78,27 +57,6 @@ def generate_multipropietario_entry_from_formulario(
     )
 
 
-def generate_json_from_form(f):
-    current = {}
-    current['CNE'] = f.cne
-    current['bienRaiz'] = {'comuna': f.comuna,
-                           'manzana': f.manzana,
-                           'predio': f.predio}
-    current['fojas'] = f.fojas
-    current['fechaInscripcion'] = f.fecha_inscripcion.strftime("%Y-%m-%d")
-    current['nroInscripcion'] = f.num_inscripcion
-
-    adquirentes: List[Adquirente] = Adquirente.query.filter_by(form_id=f.n_atencion).all()
-    adquirentes_list = []
-
-    for a in adquirentes:
-        adquirentes_list.append(
-            {'RUNRUT': a.run_rut, 'porcDerecho': a.porc_derecho})
-    current['adquirentes'] = adquirentes_list
-
-    return current
-
-
 def get_formularios_from_multipropietarios(entries: List[Multipropietario]) -> List[Formulario]:
     forms: Set[Formulario] = set()
     print(entries)
@@ -125,7 +83,7 @@ def convert_formularios_to_formulario_objects(handler, formularios: List[Formula
 
 def reprocess_formularios(db: SQLAlchemy, handler, formularios: List[Formulario]):
     for form_object in formularios:
-        handler.process_new_formulario(form_object)
+        handler.process_new_formulario_object(form_object)
         db.session.commit()
 
 

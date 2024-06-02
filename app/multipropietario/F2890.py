@@ -3,12 +3,31 @@ from multipropietario.multipropietario_tools import (
     generate_multipropietario_entry_from_formulario, FormularioObject,
     remove_from_multipropietario, reprocess_formularios, add_formulario_with_multipropietarios_and_sort)
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import Query
 from models import Multipropietario, Formulario
-from json_processing import process_and_save_json_into_db
+from tools import is_empty, CONSTANTS
 
 
 class Regularizacion_Patrimonio:
+
+    @staticmethod
+    def check_escenario(tabla_multipropietario: List[Multipropietario],
+                        before_current_form: List[Multipropietario],
+                        after_current_form: List[Multipropietario],
+                        same_year_current_form: List[Multipropietario]) -> int:
+        if is_empty(tabla_multipropietario):
+            return CONSTANTS.ESCENARIO1_VALUE
+
+        if not is_empty(same_year_current_form):
+            return CONSTANTS.ESCENARIO4_VALUE
+
+        if not is_empty(before_current_form) and is_empty(after_current_form):
+            return CONSTANTS.ESCENARIO2_VALUE
+
+        if not is_empty(after_current_form):
+            return CONSTANTS.ESCENARIO3_VALUE
+
+        else:
+            return CONSTANTS.INVALID_ESCENARIO_VALUE
 
     @staticmethod
     def escenario_4(handler, db: SQLAlchemy, formulario: FormularioObject,
@@ -36,10 +55,12 @@ class Regularizacion_Patrimonio:
                 reprocess_formularios(db, handler, sorted_formularios)
 
     @staticmethod
-    def limit_date_of_last_entries_from_multipropietario(formulario: FormularioObject, query: Query):
-        last_entries = query.filter_by(ano_vigencia_final=None).all()
-        for entry in last_entries:
-            if entry.ano_vigencia_final is None:
+    def limit_date_of_last_entries_from_multipropietario(formulario: FormularioObject, previous_entries: List[Multipropietario]):
+        sorted_entries = sorted(list(previous_entries), key=lambda x: x.ano_vigencia_inicial)
+
+        last_period_year = sorted_entries[-1].ano_vigencia_inicial
+        for entry in previous_entries:
+            if entry.ano_vigencia_inicial == last_period_year:
                 entry.ano_vigencia_final = formulario.fecha_inscripcion.year - 1
 
     @staticmethod
@@ -65,6 +86,7 @@ class CompraVenta:
                 (adquirente.porc_derecho * CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
             new_multipropietario = generate_multipropietario_entry_from_formulario(formulario, adquirente.run_rut, porc_derech_nuevo)
             db.session.add(new_multipropietario)
+
         for multipropietario in tabla_multipropietario:
             CompraVenta.update_multipropietario_ano_final(db, formulario, multipropietario)
 
@@ -77,12 +99,10 @@ class CompraVenta:
                     multipropietarios_solo_enajenantes: List[Multipropietario],
                     multipropietarios_sin_enajenantes: List[Multipropietario]):
 
-        porc_derech_nuevo = (
-            CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes)/len(formulario.adquirentes))
+        porc_derech_nuevo = (CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes)/len(formulario.adquirentes))
 
         for adquirente in formulario.adquirentes:
-            new_multipropietario = generate_multipropietario_entry_from_formulario(
-                formulario, adquirente.run_rut, porc_derech_nuevo)
+            new_multipropietario = generate_multipropietario_entry_from_formulario(formulario, adquirente.run_rut, porc_derech_nuevo)
             db.session.add(new_multipropietario)
 
         for multipropietario in multipropietarios_solo_enajenantes:

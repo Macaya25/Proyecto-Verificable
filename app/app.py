@@ -45,7 +45,7 @@ def create_form_route():
         new_formulario = add_formulario_to_database_from_form(db, form)
         add_adquirientes_to_database_from_form(db, form, new_formulario)
 
-        if form.cne.data == CONSTANTS.CNE_COMPRAVENTA.value:
+        if form.cne.data == CONSTANTS.CNE_COMPRAVENTA:
             add_enajenantes_to_database_from_form(db, form, new_formulario)
 
         converted_form = multiprop_handler.convert_form_into_object(form)
