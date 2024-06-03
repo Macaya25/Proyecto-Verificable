@@ -18,11 +18,5 @@ Para iniciar los contenedores solo tenemos que correr
 docker-compose up --build
 ```
 
-Una vez iniciados los contenedores tenemos que ir al contenedor de app_1, ir al terminal y ejecutar el siguiente comando.
-
-```sh
-python seed.py
-```
-
 Con esto tenemos las comunas y regiones en la db.
 
