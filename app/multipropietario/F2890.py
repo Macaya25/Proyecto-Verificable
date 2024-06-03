@@ -44,8 +44,9 @@ class CompraVenta:
     def escenario_1(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
                     multipropietarios_solo_enajenantes: List[Multipropietario],
                     multipropietarios_sin_enajenantes: List[Multipropietario]):
-        print('E1')
         # caso 1 ADQ 100
+        CompraVenta.update_multipropietario_unchanged_porcentaje(db, formulario, multipropietarios_sin_enajenantes)
+
         for adquirente in formulario.adquirentes:
             porc_derech_nuevo = (
                 (adquirente.porc_derecho * CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
@@ -53,8 +54,6 @@ class CompraVenta:
             db.session.add(new_multipropietario)
 
         CompraVenta.limit_date_or_delete_multipropietarios_entries(db, formulario, tabla_multipropietario)
-
-        CompraVenta.update_multipropietario_unchanged_porcentaje(db, formulario, multipropietarios_sin_enajenantes)
 
     @staticmethod
     def update_multipropietario_unchanged_porcentaje(db: SQLAlchemy, formulario: Formulario, multipropietarios_sin_enajenantes):
@@ -137,6 +136,7 @@ class CompraVenta:
                     final_porc_derecho = multipropietario.porc_derecho - enajenante.porc_derecho
 
                     if final_porc_derecho > 0:
+                        # updated_previous_multipropietario = CompraVenta.update_multipropietario_change_porcentaje(formulario, multipropietario, final_porc_derecho)
                         updated_previous_multipropietario = generate_multipropietario_entry_from_formulario(
                             formulario, enajenante.run_rut, final_porc_derecho)
                         db.session.add(updated_previous_multipropietario)

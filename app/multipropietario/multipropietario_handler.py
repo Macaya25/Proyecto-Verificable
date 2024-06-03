@@ -42,7 +42,7 @@ class MultipropietarioHandler:
         same_year_current_form = same_year_current_form_query.all()
 
         after_current_form_query = query.filter(
-            Multipropietario.ano_vigencia_inicial > formulario.fecha_inscripcion)
+            Multipropietario.fecha_inscripcion > formulario.fecha_inscripcion)
         after_current_form = after_current_form_query.all()
 
         current_escenario = Regularizacion_Patrimonio.check_escenario(tabla_multipropietario,
@@ -135,15 +135,19 @@ class MultipropietarioHandler:
 
         else:
             if sum_porc_adquirientes == 100:
+                print('Compraventa E1')
                 CompraVenta.escenario_1(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
 
             elif sum_porc_adquirientes == 0:
+                print('Compraventa E2')
                 CompraVenta.escenario_2(formulario, db, multi_solo_enajenantes, multi_sin_enajenantes)
 
             elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
+                print('Compraventa E3')
                 CompraVenta.escenario_3(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
 
             else:
+                print('Compraventa E4')
                 CompraVenta.escenario_4(formulario, db, tabla_multipropietario, multi_sin_enajenantes)
 
         # else:
