@@ -135,16 +135,16 @@ class MultipropietarioHandler:
 
         else:
             if sum_porc_adquirientes == 100:
-                CompraVenta.escenario_1(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
+                CompraVenta.sum_adquirientes_100(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
 
             elif sum_porc_adquirientes == 0:
-                CompraVenta.escenario_2(formulario, db, multi_solo_enajenantes, multi_sin_enajenantes)
+                CompraVenta.sum_adquirientes_0(formulario, db, multi_solo_enajenantes, multi_sin_enajenantes)
 
             elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
-                CompraVenta.escenario_3(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
+                CompraVenta.Enajenante_1_Adquiriente_1(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
 
             else:
-                CompraVenta.escenario_4(formulario, db, tabla_multipropietario, multi_sin_enajenantes)
+                CompraVenta.multiples_adquirientes_and_enajenantes_1_99(formulario, db, tabla_multipropietario, multi_sin_enajenantes)
 
         # else:
         #     print("enajenante fantasma")

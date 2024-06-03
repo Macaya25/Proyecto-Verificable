@@ -30,31 +30,6 @@ class Regularizacion_Patrimonio:
             return CONSTANTS.INVALID_ESCENARIO_VALUE
 
     @staticmethod
-    def escenario_4(handler, db: SQLAlchemy, formulario: FormularioObject,
-                    same_year_current_form: List[Multipropietario]):
-
-        current_date = formulario.fecha_inscripcion
-        previous_date = same_year_current_form[0].fecha_inscripcion
-
-        remove_from_multipropietario(db, same_year_current_form)
-
-        if current_date > previous_date:
-            Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
-
-        elif current_date < previous_date:
-
-            sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, same_year_current_form)
-            reprocess_formularios(db, handler, sorted_formularios)
-
-        elif current_date == previous_date:
-            if formulario.num_inscripcion > same_year_current_form[0].num_inscripcion:
-                Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
-
-            elif formulario.num_inscripcion < same_year_current_form[0].num_inscripcion:
-                sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, same_year_current_form)
-                reprocess_formularios(db, handler, sorted_formularios)
-
-    @staticmethod
     def limit_date_of_last_entries_from_multipropietario(formulario: FormularioObject, previous_entries: List[Multipropietario]):
         sorted_entries = sorted(list(previous_entries), key=lambda x: x.ano_vigencia_inicial)
 
@@ -76,7 +51,7 @@ class Regularizacion_Patrimonio:
 
 class CompraVenta:
     @staticmethod
-    def escenario_1(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
+    def sum_adquirientes_100(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
                     multipropietarios_solo_enajenantes: List[Multipropietario],
                     multipropietarios_sin_enajenantes: List[Multipropietario]):
         print('E1')
@@ -95,7 +70,7 @@ class CompraVenta:
             db.session.add(multipropietario)
 
     @staticmethod
-    def escenario_2(formulario: FormularioObject, db: SQLAlchemy,
+    def sum_adquirientes_0(formulario: FormularioObject, db: SQLAlchemy,
                     multipropietarios_solo_enajenantes: List[Multipropietario],
                     multipropietarios_sin_enajenantes: List[Multipropietario]):
 
@@ -115,7 +90,7 @@ class CompraVenta:
                 db.session.add(multipropietario)
 
     @staticmethod
-    def escenario_3(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
+    def Enajenante_1_Adquiriente_1(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
                     multipropietarios_solo_enajenantes: List[Multipropietario],
                     multipropietarios_sin_enajenantes: List[Multipropietario]):
         # caso 3 ADQ 1-99 ENA y ADQ == 1
@@ -138,7 +113,7 @@ class CompraVenta:
             db.session.add(multipropietario)
 
     @staticmethod
-    def escenario_4(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
+    def multiples_adquirientes_and_enajenantes_1_99(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
                     multipropietarios_sin_enajenantes: List[Multipropietario]):
         # caso 4 else ADQ 1-99 ENA y ADQ !=1
         for previous_entry in tabla_multipropietario:
