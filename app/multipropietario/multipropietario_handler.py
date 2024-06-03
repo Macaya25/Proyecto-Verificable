@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import asc, and_, or_
 from multipropietario.multipropietario_tools import (
     FormularioObject, reprocess_multipropietario_entries_with_new_formulario,
-    remove_from_multipropietario, reprocess_multipropietario_entries)
+    remove_from_multipropietario, reprocess_multipropietario_entries, limit_date_of_last_entries_from_multipropietario)
 from multipropietario.F2890 import Regularizacion_Patrimonio, CompraVenta
 
 from models import db, Multipropietario, Enajenante, Adquirente, Formulario
@@ -42,7 +42,7 @@ class MultipropietarioHandler:
         same_year_current_form = same_year_current_form_query.all()
 
         after_current_form_query = query.filter(
-            Multipropietario.ano_vigencia_inicial > formulario.fecha_inscripcion)
+            Multipropietario.fecha_inscripcion > formulario.fecha_inscripcion)
         after_current_form = after_current_form_query.all()
 
         current_escenario = Regularizacion_Patrimonio.check_escenario(tabla_multipropietario,
@@ -56,7 +56,7 @@ class MultipropietarioHandler:
 
             case CONSTANTS.ESCENARIO2_VALUE:
                 print('E2')
-                Regularizacion_Patrimonio.limit_date_of_last_entries_from_multipropietario(formulario, before_current_form)
+                limit_date_of_last_entries_from_multipropietario(formulario, before_current_form)
                 Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
 
             case CONSTANTS.ESCENARIO3_VALUE:
@@ -135,15 +135,19 @@ class MultipropietarioHandler:
 
         else:
             if sum_porc_adquirientes == 100:
+                print('Compraventa E1')
                 CompraVenta.sum_adquirientes_100(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
 
             elif sum_porc_adquirientes == 0:
+                print('Compraventa E2')
                 CompraVenta.sum_adquirientes_0(formulario, db, multi_solo_enajenantes, multi_sin_enajenantes)
 
             elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
+                print('Compraventa E3')
                 CompraVenta.Enajenante_1_Adquiriente_1(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
 
             else:
+                print('Compraventa E4')
                 CompraVenta.multiples_adquirientes_and_enajenantes_1_99(formulario, db, tabla_multipropietario, multi_sin_enajenantes)
 
         # else:

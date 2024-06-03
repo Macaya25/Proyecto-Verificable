@@ -30,6 +30,15 @@ def reprocess_multipropietario_entries_with_new_formulario(db, handler, formular
     reprocess_formularios(db, handler, sorted_formularios)
 
 
+def limit_date_of_last_entries_from_multipropietario(formulario: FormularioObject, previous_entries: List[Multipropietario]):
+    sorted_entries = sorted(list(previous_entries), key=lambda x: x.ano_vigencia_inicial)
+
+    last_period_year = sorted_entries[-1].ano_vigencia_inicial
+    for entry in previous_entries:
+        if entry.ano_vigencia_inicial == last_period_year:
+            entry.ano_vigencia_final = formulario.fecha_inscripcion.year - 1
+
+
 def reprocess_multipropietario_entries(db, handler, entries: List[Multipropietario]):
     formularios = get_formularios_from_multipropietarios(entries)
     reprocess_formularios(db, handler, formularios)
