@@ -98,9 +98,9 @@ def obtener_descripcion_cne(cne_id):
 def multipropietario_route():
     form = SearchForm()
     search_results = []
-
+    print("estamos en multipropietario:", request)
     if request.method == 'POST':
-        multiprop_handler.search_multipropietario(request)
+        search_results = multiprop_handler.search_multipropietario(request)
         return render_template('multipropietario.html', form=form, search_results=search_results)
 
     search_results = Multipropietario.query.all()

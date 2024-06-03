@@ -223,7 +223,7 @@ class MultipropietarioHandler:
                                 formulario.fojas, formulario.fecha_inscripcion, formulario.num_inscripcion,
                                 enajenantes, adquirentes)
 
-    def search_multipropietario(request):
+    def search_multipropietario(self, request):
         comuna = request.form.get('comuna')
         manzana = request.form.get('manzana')
         predio = request.form.get('predio')
