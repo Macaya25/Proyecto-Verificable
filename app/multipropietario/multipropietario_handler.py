@@ -42,7 +42,7 @@ class MultipropietarioHandler:
         same_year_current_form = same_year_current_form_query.all()
 
         after_current_form_query = query.filter(
-            Multipropietario.fecha_inscripcion > formulario.fecha_inscripcion)
+            Multipropietario.ano_vigencia_inicial > formulario.fecha_inscripcion)
         after_current_form = after_current_form_query.all()
 
         current_escenario = Regularizacion_Patrimonio.check_escenario(tabla_multipropietario,
@@ -68,7 +68,7 @@ class MultipropietarioHandler:
                 print('E4')
 
                 current_date = formulario.fecha_inscripcion
-                previous_date = same_year_current_form[0].fecha_inscripcion
+                previous_date = same_year_current_form[-1].fecha_inscripcion
 
                 if current_date > previous_date:
                     remove_from_multipropietario(db, same_year_current_form)
@@ -144,7 +144,8 @@ class MultipropietarioHandler:
 
             elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
                 print('Compraventa E3')
-                CompraVenta.Enajenante_1_Adquiriente_1(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
+                CompraVenta.Enajenante_1_Adquiriente_1(formulario, db, tabla_multipropietario,
+                                                       multi_solo_enajenantes, multi_sin_enajenantes)
 
             else:
                 print('Compraventa E4')

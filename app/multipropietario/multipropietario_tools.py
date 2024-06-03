@@ -21,7 +21,20 @@ class FormularioObject:
 
 def remove_from_multipropietario(db, entries_after_current_form: List[Multipropietario]):
     for entry in entries_after_current_form:
+        print('Removing: ', entry)
         db.session.delete(entry)
+
+
+def element_exist(session, element):
+    return session.query(Multipropietario).filter_by(comuna=element.comuna,
+                                                     manzana=element.manzana,
+                                                     predio=element.predio,
+                                                     run_rut=element.run_rut,
+                                                     fojas=element.fojas,
+                                                     porc_derecho=element.porc_derecho,
+                                                     ano_vigencia_inicial=element.ano_vigencia_inicial,
+                                                     ano_vigencia_final=element.ano_vigencia_final,
+                                                     fecha_inscripcion=element.fecha_inscripcion).first()
 
 
 def reprocess_multipropietario_entries_with_new_formulario(db, handler, formulario, entries: List[Multipropietario]):

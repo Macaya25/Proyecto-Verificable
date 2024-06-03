@@ -54,6 +54,8 @@ class Adquirente(db.Model):
 
 
 class Multipropietario(db.Model):
+    def __repr__(self) -> str:
+        return f"Mz: {self.manzana}, Pr: {self.predio}, RUT: {self.run_rut}, Derecho: {self.porc_derecho}"
     __tablename__ = 'multipropietario'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     comuna: str = db.Column(db.String(50), index=True)

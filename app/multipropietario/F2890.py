@@ -1,6 +1,6 @@
 from typing import List
 from multipropietario.multipropietario_tools import (
-    generate_multipropietario_entry_from_formulario, FormularioObject, remove_from_multipropietario)
+    generate_multipropietario_entry_from_formulario, FormularioObject, remove_from_multipropietario, element_exist)
 from flask_sqlalchemy import SQLAlchemy
 from models import Multipropietario, Formulario
 from tools import is_empty, CONSTANTS
@@ -51,8 +51,8 @@ class Regularizacion_Patrimonio:
 class CompraVenta:
     @staticmethod
     def sum_adquirientes_100(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
-                    multipropietarios_solo_enajenantes: List[Multipropietario],
-                    multipropietarios_sin_enajenantes: List[Multipropietario]):
+                             multipropietarios_solo_enajenantes: List[Multipropietario],
+                             multipropietarios_sin_enajenantes: List[Multipropietario]):
         # caso 1 ADQ 100
         CompraVenta.update_multipropietario_unchanged_porcentaje(db, formulario, multipropietarios_sin_enajenantes)
 
@@ -77,8 +77,8 @@ class CompraVenta:
 
     @staticmethod
     def sum_adquirientes_0(formulario: FormularioObject, db: SQLAlchemy,
-                    multipropietarios_solo_enajenantes: List[Multipropietario],
-                    multipropietarios_sin_enajenantes: List[Multipropietario]):
+                           multipropietarios_solo_enajenantes: List[Multipropietario],
+                           multipropietarios_sin_enajenantes: List[Multipropietario]):
         porc_derech_nuevo = (CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes)/len(formulario.adquirentes))
 
         for adquirente in formulario.adquirentes:
@@ -92,22 +92,24 @@ class CompraVenta:
 
     @staticmethod
     def Enajenante_1_Adquiriente_1(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
-                    multipropietarios_solo_enajenantes: List[Multipropietario],
-                    multipropietarios_sin_enajenantes: List[Multipropietario]):
+                                   multipropietarios_solo_enajenantes: List[Multipropietario],
+                                   multipropietarios_sin_enajenantes: List[Multipropietario]):
         # caso 3 ADQ 1-99 ENA y ADQ == 1
 
         CompraVenta.limit_date_or_delete_multipropietarios_entries(db, formulario, tabla_multipropietario)
 
-        CompraVenta.update_multipropietario_unchanged_porcentaje(db, formulario, multipropietarios_sin_enajenantes)
-
         porc_derech_nuevo_adq = (
             (formulario.adquirentes[0].porc_derecho * CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
+        porc_derech_nuevo_ena = CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes) - porc_derech_nuevo_adq
         new_multipropietario = generate_multipropietario_entry_from_formulario(
             formulario, formulario.adquirentes[0].run_rut, porc_derech_nuevo_adq)
         db.session.add(new_multipropietario)
 
-        porc_derech_nuevo_ena = CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes) - porc_derech_nuevo_adq
-        CompraVenta.update_porcentaje_on_enajenantes(db, formulario, multipropietarios_solo_enajenantes, porc_derech_nuevo_ena)
+        updated_previous_multipropietario = generate_multipropietario_entry_from_formulario(
+            formulario, formulario.enajenantes[0].run_rut, porc_derech_nuevo_ena)
+        db.session.add(updated_previous_multipropietario)
+
+        CompraVenta.update_multipropietario_unchanged_porcentaje(db, formulario, multipropietarios_sin_enajenantes)
 
     @staticmethod
     def update_multipropietario_change_porcentaje(formulario: Formulario, multipropietario: Multipropietario, new_derecho):
@@ -134,9 +136,10 @@ class CompraVenta:
             db.session.add(updated_previous_multipropietario)
 
     @staticmethod
-    def multiples_adquirientes_and_enajenantes_1_99(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
-                    multipropietarios_sin_enajenantes: List[Multipropietario]):
+    def multiples_adquirientes_and_enajenantes_1_99(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario,
+                                                    multipropietarios_sin_enajenantes: List[Multipropietario]):
         # caso 4 else ADQ 1-99 ENA y ADQ !=1
+
         CompraVenta.limit_date_or_delete_multipropietarios_entries(db, formulario, tabla_multipropietario)
 
         for multipropietario in tabla_multipropietario:
@@ -145,15 +148,18 @@ class CompraVenta:
                     final_porc_derecho = multipropietario.porc_derecho - enajenante.porc_derecho
 
                     if final_porc_derecho > 0:
-                        # updated_previous_multipropietario = CompraVenta.update_multipropietario_change_porcentaje(formulario, multipropietario, final_porc_derecho)
-                        updated_previous_multipropietario = generate_multipropietario_entry_from_formulario(
-                            formulario, enajenante.run_rut, final_porc_derecho)
+                        updated_previous_multipropietario = CompraVenta.update_multipropietario_change_porcentaje(
+                            multipropietario, multipropietario, final_porc_derecho)
+                        # updated_previous_multipropietario = generate_multipropietario_entry_from_formulario(
+                        #     formulario, enajenante.run_rut, final_porc_derecho)
                         db.session.add(updated_previous_multipropietario)
 
+        print('Formulario adqs: ', formulario.adquirentes)
         for adquiriente in formulario.adquirentes:
             new_multipropietario = generate_multipropietario_entry_from_formulario(
                 formulario, adquiriente.run_rut, adquiriente.porc_derecho)
-            db.session.add(new_multipropietario)
+            if not element_exist(db.session, new_multipropietario):
+                db.session.add(new_multipropietario)
 
         CompraVenta.update_multipropietario_unchanged_porcentaje(db, formulario, multipropietarios_sin_enajenantes)
 
