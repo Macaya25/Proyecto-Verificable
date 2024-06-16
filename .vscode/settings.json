@@ -8,5 +8,15 @@
     ],
     "autopep8.args": [
         "--max-line-length=140"
+    ],
+    "cSpell.words": [
+        "FILEPROPERTIES",
+        "inscripcion",
+        "multipropietario",
+        "multipropietarios",
+        "porc",
+        "regularizacion",
+        "Regularizacion",
+        "sqlalchemy"
     ]
 }

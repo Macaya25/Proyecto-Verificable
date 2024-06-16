@@ -10,6 +10,6 @@ WORKDIR /app
 COPY requirements.txt /app
 RUN pip install -r requirements.txt
 
-COPY app.py entrypoint.sh /app/
+COPY main.py entrypoint.sh /app/
 
 ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]

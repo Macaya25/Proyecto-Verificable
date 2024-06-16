@@ -4,7 +4,7 @@ from sqlalchemy import asc, and_, or_
 from multipropietario.multipropietario_tools import (
     FormularioObject, reprocess_multipropietario_entries_with_new_formulario,
     remove_from_multipropietario, reprocess_multipropietario_entries, limit_date_of_last_entries_from_multipropietario)
-from multipropietario.F2890 import Regularizacion_Patrimonio, CompraVenta
+from multipropietario.F2890 import RegularizacionPatrimonio, CompraVenta
 
 from models import db, Multipropietario, Enajenante, Adquirente, Formulario
 from forms import FormularioForm
@@ -45,19 +45,19 @@ class MultipropietarioHandler:
             Multipropietario.ano_vigencia_inicial > formulario.fecha_inscripcion)
         after_current_form = after_current_form_query.all()
 
-        current_escenario = Regularizacion_Patrimonio.check_escenario(tabla_multipropietario,
-                                                                      before_current_form, after_current_form,
-                                                                      same_year_current_form)
+        current_escenario = RegularizacionPatrimonio.check_escenario(tabla_multipropietario,
+                                                                     before_current_form, after_current_form,
+                                                                     same_year_current_form)
 
         match current_escenario:
             case CONSTANTS.ESCENARIO1_VALUE:
                 print('E1')
-                Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
+                RegularizacionPatrimonio.add_form_to_multipropietario(db, formulario)
 
             case CONSTANTS.ESCENARIO2_VALUE:
                 print('E2')
                 limit_date_of_last_entries_from_multipropietario(formulario, before_current_form)
-                Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
+                RegularizacionPatrimonio.add_form_to_multipropietario(db, formulario)
 
             case CONSTANTS.ESCENARIO3_VALUE:
                 print('E3')
@@ -72,7 +72,7 @@ class MultipropietarioHandler:
 
                 if current_date > previous_date:
                     remove_from_multipropietario(db, same_year_current_form)
-                    Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
+                    RegularizacionPatrimonio.add_form_to_multipropietario(db, formulario)
 
                 elif current_date < previous_date:
                     reprocess_multipropietario_entries_with_new_formulario(db, self, formulario, same_year_current_form)
@@ -80,7 +80,7 @@ class MultipropietarioHandler:
                 elif current_date == previous_date:
                     if formulario.num_inscripcion > same_year_current_form[0].num_inscripcion:
                         remove_from_multipropietario(db, same_year_current_form)
-                        Regularizacion_Patrimonio.add_form_to_multipropietario(db, formulario)
+                        RegularizacionPatrimonio.add_form_to_multipropietario(db, formulario)
 
                     elif formulario.num_inscripcion < same_year_current_form[0].num_inscripcion:
                         reprocess_multipropietario_entries_with_new_formulario(db, self, formulario, same_year_current_form)
@@ -117,8 +117,6 @@ class MultipropietarioHandler:
         future_multipropietarios: List[Multipropietario] = future_query.all()
 
         tabla_multipropietario: List[Multipropietario] = query.all()
-        # run_ruts = {
-        #     multipropietario.run_rut for multipropietario in tabla_multipropietario}
 
         # Create a list of run_ruts for all enajenantes
         enajenante_run_ruts = [

@@ -24,7 +24,7 @@ def process_and_save_json_into_db(db: SQLAlchemy, json_form) -> bool:
 
 
 def analyse_json_save_into_db_and_process_it(db: SQLAlchemy, multiprop_handler, submitted_file):
-    if submitted_file.filename.endswith(FILEPROPERTIES.JSON_FILE_EXTENTION):
+    if submitted_file.filename.endswith(FILEPROPERTIES.JSON_FILE_EXTENSION):
         submitted_file = json.loads(submitted_file.read().decode(FILEPROPERTIES.ENCODING_FORMAT))
 
         is_valid_json = process_and_save_json_into_db(db, submitted_file)

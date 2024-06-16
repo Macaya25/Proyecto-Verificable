@@ -26,4 +26,4 @@ echo "Starting Software_verificable app..."
 
 python seed.py
 
-python app.py
+python main.py

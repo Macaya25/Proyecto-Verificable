@@ -1,8 +1,8 @@
+from models import CNE, Region, Comuna
 from flask_wtf import FlaskForm
 from wtforms import (StringField, IntegerField, SubmitField, DateField, FieldList, FormField,
                      SelectField, FileField, FloatField)
 from wtforms.validators import DataRequired, NumberRange, InputRequired
-from models import CNE, Region, Comuna
 
 
 def coerce_for_select_field(value):

@@ -1,6 +1,6 @@
 from models import Formulario, Enajenante, Adquirente, Persona
-from flask_sqlalchemy import SQLAlchemy
 from forms import FormularioForm
+from flask_sqlalchemy import SQLAlchemy
 
 
 class CONSTANTS:
@@ -15,7 +15,7 @@ class CONSTANTS:
 
 
 class FILEPROPERTIES:
-    JSON_FILE_EXTENTION = '.json'
+    JSON_FILE_EXTENSION = '.json'
     ENCODING_FORMAT = 'utf-8'
 
 
