@@ -12,24 +12,24 @@ from tools import CONSTANTS
 
 
 class MultipropietarioHandler:
-    def process_new_formulario_object(self, formulario: FormularioObject):
+    def process_new_formulario_object(self, db, formulario: FormularioObject):
         print('New formulario: ', formulario.num_inscripcion, formulario.fecha_inscripcion)
 
         if formulario.cne == CONSTANTS.CNE_REGULARIZACION:
-            self.process_regularizacion_patrimonio(formulario)
+            self.process_regularizacion_patrimonio(db, formulario)
 
         elif formulario.cne == CONSTANTS.CNE_COMPRAVENTA:
-            self.process_compraventa(formulario)
+            self.process_compraventa(db, formulario)
 
         else:
             print(f"Nivel inesperado: {formulario.cne}")
 
-    def process_regularizacion_patrimonio(self, formulario: FormularioObject):
+    def process_regularizacion_patrimonio(self, db, formulario: FormularioObject):
 
-        query = Multipropietario.query.filter_by(comuna=formulario.comuna,
-                                                 manzana=formulario.manzana,
-                                                 predio=formulario.predio
-                                                 ).order_by(asc(Multipropietario.ano_vigencia_inicial))
+        query = db.session.query(Multipropietario).filter_by(comuna=formulario.comuna,
+                                                             manzana=formulario.manzana,
+                                                             predio=formulario.predio
+                                                             ).order_by(asc(Multipropietario.ano_vigencia_inicial))
 
         tabla_multipropietario: List[Multipropietario] = query.all()
 
@@ -91,9 +91,9 @@ class MultipropietarioHandler:
             case _:
                 print('Escenario inesperado.')
 
-    def process_compraventa(self, formulario: FormularioObject):
+    def process_compraventa(self, db, formulario: FormularioObject):
 
-        query = Multipropietario.query.filter(
+        query = db.session.query(Multipropietario).filter(
             and_(
                 Multipropietario.comuna == formulario.comuna,
                 Multipropietario.manzana == formulario.manzana,
@@ -106,7 +106,7 @@ class MultipropietarioHandler:
             )
         )
 
-        future_query = Multipropietario.query.filter(
+        future_query = db.session.query(Multipropietario).filter(
             and_(
                 Multipropietario.comuna == formulario.comuna,
                 Multipropietario.manzana == formulario.manzana,
@@ -214,9 +214,9 @@ class MultipropietarioHandler:
 
         return objects
 
-    def convert_formulario_into_object(self, formulario: Formulario) -> FormularioObject:
-        enajenantes = Enajenante.query.filter_by(form_id=formulario.n_atencion).all()
-        adquirentes = Adquirente.query.filter_by(form_id=formulario.n_atencion).all()
+    def convert_formulario_into_object(self, db, formulario: Formulario) -> FormularioObject:
+        enajenantes = db.session.query(Enajenante).filter_by(form_id=formulario.n_atencion).all()
+        adquirentes = db.session.query(Adquirente).filter_by(form_id=formulario.n_atencion).all()
 
         return FormularioObject(formulario.cne, formulario.comuna, formulario.manzana, formulario.predio,
                                 formulario.fojas, formulario.fecha_inscripcion, formulario.num_inscripcion,

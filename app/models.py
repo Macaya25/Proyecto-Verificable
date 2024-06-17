@@ -2,7 +2,6 @@ from datetime import date
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 
-
 db = SQLAlchemy()
 
 
@@ -68,7 +67,7 @@ class Multipropietario(db.Model):
     ano_inscripcion: int = db.Column(db.Integer)
     num_inscripcion: int = db.Column(db.Integer, index=True)
     fecha_inscripcion: date = db.Column(db.Date)
-    ano_vigencia_inicial: date = db.Column(db.Integer)
+    ano_vigencia_inicial: int = db.Column(db.Integer)
     ano_vigencia_final: int = db.Column(db.Integer)
 
 
