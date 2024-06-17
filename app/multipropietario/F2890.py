@@ -149,7 +149,7 @@ class CompraVenta:
 
                     if final_porc_derecho > 0:
                         updated_previous_multipropietario = CompraVenta.update_multipropietario_change_porcentaje(
-                            multipropietario, multipropietario, final_porc_derecho)
+                            formulario, multipropietario, final_porc_derecho)
 
                         db.session.add(updated_previous_multipropietario)
 
