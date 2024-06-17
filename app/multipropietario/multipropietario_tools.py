@@ -105,7 +105,7 @@ def convert_formularios_to_formulario_objects(handler, formularios: List[Formula
 
 def reprocess_formularios(db: SQLAlchemy, handler, formularios: List[Formulario]):
     for form_object in formularios:
-        handler.process_new_formulario_object(form_object)
+        handler.process_new_formulario_object(db, form_object)
         db.session.commit()
 
 

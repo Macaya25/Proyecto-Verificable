@@ -6,7 +6,7 @@ from multipropietario.multipropietario_tools import (
     remove_from_multipropietario, reprocess_multipropietario_entries, limit_date_of_last_entries_from_multipropietario)
 from multipropietario.F2890 import RegularizacionPatrimonio, CompraVenta
 
-from models import db, Multipropietario, Enajenante, Adquirente, Formulario
+from models import Multipropietario, Enajenante, Adquirente, Formulario
 from forms import FormularioForm
 from tools import CONSTANTS
 
