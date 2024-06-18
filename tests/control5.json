@@ -28,6 +28,60 @@
         "fojas": 2,
         "fechaInscripcion": "2014-06-06",
         "nroInscripcion": 444
+      },
+      {
+        "CNE": 8,
+        "bienRaiz": {
+          "comuna": 77,
+          "manzana": 268,
+          "predio": 32
+        },
+        "enajenantes": [
+          {
+            "RUNRUT": "3-5",
+            "porcDerecho": 55
+          }
+        ],
+        "adquirentes": [
+          {
+            "RUNRUT": "61-2",
+            "porcDerecho": 20
+          },
+          {
+            "RUNRUT": "72-8",
+            "porcDerecho": 35
+          }
+        ],
+        "fojas": 2,
+        "fechaInscripcion": "2014-06-06",
+        "nroInscripcion": 444
+      },
+      {
+        "CNE": 8,
+        "bienRaiz": {
+          "comuna": 77,
+          "manzana": 268,
+          "predio": 32
+        },
+        "enajenantes": [
+          {
+            "RUNRUT": "3-5",
+            "porcDerecho": 55
+          }
+        ],
+        "adquirentes": [
+          {
+            "RUNRUT": "61-2",
+            "porcDerecho": 20
+          },
+          {
+            "RUNRUT": "72-8",
+            "porcDerecho": 35
+          }
+        ],
+        "fojas": 777,
+        "fechaInscripcion": "2020-02-21",
+        "nroInscripcion": 52
       }
     ]
   }

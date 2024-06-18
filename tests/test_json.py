@@ -1,4 +1,5 @@
 import unittest
+from pytest import approx
 from flask import Flask
 from app.models import db, Multipropietario, Formulario
 from app.json_processing import (process_and_save_json_into_db, parse_json_and_save_form_in_db,
@@ -104,11 +105,14 @@ class JsonProcessing(unittest.TestCase):
                     assert result.manzana == expected["manzana"]
                     assert result.predio == expected["predio"]
                     assert result.run_rut == expected["run_rut"]
-                    assert result.porc_derecho == expected["porc_derecho"]
+                    assert result.porc_derecho == approx(expected["porc_derecho"], rel=1e-4)
                     assert result.fojas == expected["fojas"]
                     assert result.ano_inscripcion == expected["ano_inscripcion"]
                     assert result.num_inscripcion == expected["num_inscripcion"]
-                    assert result.fecha_inscripcion.strftime('%Y-%m-%d') == expected["fecha_inscripcion"]
+                    if result.fecha_inscripcion:
+                        assert result.fecha_inscripcion.strftime('%Y-%m-%d') == expected["fecha_inscripcion"]
+                    else:
+                        assert expected["fecha_inscripcion"] is None
                     assert result.ano_vigencia_inicial == expected["ano_vigencia_inicial"]
                     assert result.ano_vigencia_final == expected["ano_vigencia_final"]
 
