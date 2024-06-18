@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 from sqlalchemy import asc, and_, or_
 from multipropietario.multipropietario_tools import (
-    FormularioObject, reprocess_multipropietario_entries_with_new_formulario, merge_multipropietarios,
+    FormularioObject, reprocess_multipropietario_entries_with_new_formulario, merge_multipropietarios, ajustar_porcentajes,
     remove_from_multipropietario, reprocess_multipropietario_entries, limit_date_of_last_entries_from_multipropietario)
 from multipropietario.F2890 import RegularizacionPatrimonio, CompraVenta
 
@@ -54,6 +54,7 @@ class MultipropietarioHandler:
                 print('E1')
                 RegularizacionPatrimonio.add_form_to_multipropietario(db, formulario)
                 merge_multipropietarios(db, formulario)
+                # ajustar_porcentajes(db, formulario)
 
             case CONSTANTS.ESCENARIO2_VALUE:
                 print('E2')
@@ -148,7 +149,10 @@ class MultipropietarioHandler:
 
             else:
                 print('Compraventa E4')
-                CompraVenta.multiples_adquirientes_and_enajenantes_1_99(formulario, db, tabla_multipropietario, multi_sin_enajenantes)
+                CompraVenta.multiples_adquirientes_and_enajenantes_1_99(formulario, db, tabla_multipropietario,
+                                                                        multi_solo_enajenantes, multi_sin_enajenantes)
+                merge_multipropietarios(db, formulario)
+                ajustar_porcentajes(db, formulario)
 
         # else:
         #     print("enajenante fantasma")

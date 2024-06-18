@@ -146,10 +146,17 @@ class CompraVenta:
 
     @staticmethod
     def multiples_adquirientes_and_enajenantes_1_99(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario,
+                                                    multipropietarios_solo_enajenantes: List[Multipropietario],
                                                     multipropietarios_sin_enajenantes: List[Multipropietario]):
         # caso 4 else ADQ 1-99 ENA y ADQ !=1
 
         CompraVenta.limit_date_or_delete_multipropietarios_entries(db, formulario, tabla_multipropietario)
+
+        fantasmas = CompraVenta.generate_fantasmas(formulario, multipropietarios_solo_enajenantes)
+
+        if fantasmas:
+            for fantasma in fantasmas:
+                db.session.add(fantasma)
 
         CompraVenta.update_multipropietario_unchanged_porcentaje(db, formulario, multipropietarios_sin_enajenantes)
 
@@ -262,7 +269,7 @@ class CompraVenta:
             ano_inscripcion=None,
             num_inscripcion=None,
             fecha_inscripcion=None,
-            ano_vigencia_inicial=None,
+            ano_vigencia_inicial=formulario.fecha_inscripcion.year,
             ano_vigencia_final=None
         )
 

@@ -128,10 +128,11 @@ def merge_multipropietarios(db: SQLAlchemy, formulario: FormularioObject) -> Lis
     merged_dict = {}
 
     for obj in multipropietarios:
-        key = (obj.comuna, obj.manzana, obj.predio, obj.run_rut, obj.num_inscripcion)
+        key = (obj.comuna, obj.manzana, obj.predio, obj.run_rut, obj.ano_vigencia_inicial)
 
         if key in merged_dict:
             merged_dict[key].porc_derecho += obj.porc_derecho
+
             # Mark duplicate for deletion
             db.session.delete(obj)
         else:
@@ -139,7 +140,42 @@ def merge_multipropietarios(db: SQLAlchemy, formulario: FormularioObject) -> Lis
 
     # Update the existing multipropietarios in the database with merged values
     for key, merged_obj in merged_dict.items():
+        if merged_obj.porc_derecho < 0:
+            merged_obj.porc_derecho = 0
         db.session.add(merged_obj)
 
     # Commit the session to save the changes
     db.session.commit()
+
+
+def ajustar_porcentajes(db: SQLAlchemy, formulario: FormularioObject):
+    multipropietarios: List[Multipropietario] = db.session.query(Multipropietario).filter_by(
+        comuna=formulario.comuna,
+        manzana=formulario.manzana,
+        predio=formulario.predio
+    ).order_by(asc(Multipropietario.ano_vigencia_inicial))
+
+    temp_multipropietarios = multipropietarios.all()
+    last_period_year = temp_multipropietarios[-1].ano_vigencia_inicial
+
+    multipropietarios = multipropietarios.filter_by(ano_vigencia_inicial=last_period_year).all()
+
+    total_percentage = 0
+    for multiprop in multipropietarios:
+        total_percentage += multiprop.porc_derecho
+
+    if total_percentage > 100:
+        for multiprop in multipropietarios:
+            multiprop.porc_derecho = multiprop.porc_derecho * 100 / total_percentage
+
+    elif total_percentage < 100:
+        missing_percentage = 100 - total_percentage
+
+        missing_elements_amount = 0
+        for multiprop in multipropietarios:
+            if multiprop.porc_derecho == 0:
+                missing_elements_amount += 1
+
+        for multiprop in multipropietarios:
+            if multiprop.porc_derecho == 0:
+                multiprop.porc_derecho = missing_percentage / missing_elements_amount
