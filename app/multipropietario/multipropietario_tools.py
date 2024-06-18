@@ -2,6 +2,7 @@ from typing import List, Set
 from datetime import date
 from models import Multipropietario, Adquirente, Enajenante, Formulario
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import asc
 
 
 class FormularioObject:
@@ -23,6 +24,7 @@ def remove_from_multipropietario(db, entries_after_current_form: List[Multipropi
     for entry in entries_after_current_form:
         print('Removing: ', entry)
         db.session.delete(entry)
+        db.session.commit()
 
 
 def element_exist(session, element):
@@ -39,7 +41,7 @@ def element_exist(session, element):
 
 def reprocess_multipropietario_entries_with_new_formulario(db, handler, formulario, entries: List[Multipropietario]):
     remove_from_multipropietario(db, entries)
-    sorted_formularios = add_formulario_with_multipropietarios_and_sort(formulario, entries)
+    sorted_formularios = add_formulario_with_multipropietarios_and_sort(db, formulario, entries)
     reprocess_formularios(db, handler, sorted_formularios)
 
 
@@ -53,7 +55,7 @@ def limit_date_of_last_entries_from_multipropietario(formulario: FormularioObjec
 
 
 def reprocess_multipropietario_entries(db, handler, entries: List[Multipropietario]):
-    formularios = get_formularios_from_multipropietarios(entries)
+    formularios = get_formularios_from_multipropietarios(db, entries)
     reprocess_formularios(db, handler, formularios)
 
 
@@ -79,11 +81,11 @@ def generate_multipropietario_entry_from_formulario(
     )
 
 
-def get_formularios_from_multipropietarios(entries: List[Multipropietario]) -> List[Formulario]:
+def get_formularios_from_multipropietarios(db, entries: List[Multipropietario]) -> List[Formulario]:
     forms: Set[Formulario] = set()
     print(entries)
     for entry in entries:
-        source_form = Formulario.query.filter_by(
+        source_form = db.session.query(Formulario).filter_by(
             comuna=entry.comuna, manzana=entry.manzana, predio=entry.predio,
             fojas=entry.fojas, fecha_inscripcion=entry.fecha_inscripcion).first()
         if source_form:
@@ -93,7 +95,7 @@ def get_formularios_from_multipropietarios(entries: List[Multipropietario]) -> L
 
 
 def reprocess_future_multipropietarios(db: SQLAlchemy, handler, future_multipropietarios: List[Multipropietario]):
-    future_formularios = get_formularios_from_multipropietarios(future_multipropietarios)
+    future_formularios = get_formularios_from_multipropietarios(db, future_multipropietarios)
     future_formulario_objects: List[FormularioObject] = convert_formularios_to_formulario_objects(handler, future_formularios)
     reprocess_formularios(db, handler, future_formulario_objects)
 
@@ -109,8 +111,35 @@ def reprocess_formularios(db: SQLAlchemy, handler, formularios: List[Formulario]
         db.session.commit()
 
 
-def add_formulario_with_multipropietarios_and_sort(formulario: Formulario, multipropietarios: List[Multipropietario]):
-    past_formularios: List[Formulario] = get_formularios_from_multipropietarios(multipropietarios)
+def add_formulario_with_multipropietarios_and_sort(db, formulario: Formulario, multipropietarios: List[Multipropietario]):
+    past_formularios: List[Formulario] = get_formularios_from_multipropietarios(db, multipropietarios)
     past_formularios.append(formulario)
     sorted_formularios = sorted(list(past_formularios), key=lambda x: x.fecha_inscripcion)
     return sorted_formularios
+
+
+def merge_multipropietarios(db: SQLAlchemy, formulario: FormularioObject) -> List[Multipropietario]:
+
+    multipropietarios = db.session.query(Multipropietario).filter_by(comuna=formulario.comuna,
+                                                                     manzana=formulario.manzana,
+                                                                     predio=formulario.predio
+                                                                     ).order_by(asc(Multipropietario.ano_vigencia_inicial)).all()
+
+    merged_dict = {}
+
+    for obj in multipropietarios:
+        key = (obj.comuna, obj.manzana, obj.predio, obj.run_rut, obj.num_inscripcion)
+
+        if key in merged_dict:
+            merged_dict[key].porc_derecho += obj.porc_derecho
+            # Mark duplicate for deletion
+            db.session.delete(obj)
+        else:
+            merged_dict[key] = obj
+
+    # Update the existing multipropietarios in the database with merged values
+    for key, merged_obj in merged_dict.items():
+        db.session.add(merged_obj)
+
+    # Commit the session to save the changes
+    db.session.commit()

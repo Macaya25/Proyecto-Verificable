@@ -49,7 +49,7 @@ def create_form_route():
             add_enajenantes_to_database_from_form(db, form, new_formulario)
 
         converted_form = multiprop_handler.convert_form_into_object(form)
-        multiprop_handler.process_new_formulario_object(converted_form)
+        multiprop_handler.process_new_formulario_object(db, converted_form)
         db.session.commit()
         flash('Formulario registrado con éxito!')
         return redirect(url_for('show_all_forms_route'))
@@ -100,7 +100,7 @@ def multipropietario_route():
     search_results = []
     print("estamos en multipropietario:", request)
     if request.method == 'POST':
-        search_results = multiprop_handler.search_multipropietario(request)
+        search_results = multiprop_handler.search_multipropietario(db, request)
         return render_template('multipropietario.html', form=form, search_results=search_results)
 
     search_results = Multipropietario.query.all()
@@ -117,4 +117,4 @@ def get_comunas(region_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True, host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=True)

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 from sqlalchemy import asc, and_, or_
 from multipropietario.multipropietario_tools import (
-    FormularioObject, reprocess_multipropietario_entries_with_new_formulario,
+    FormularioObject, reprocess_multipropietario_entries_with_new_formulario, merge_multipropietarios,
     remove_from_multipropietario, reprocess_multipropietario_entries, limit_date_of_last_entries_from_multipropietario)
 from multipropietario.F2890 import RegularizacionPatrimonio, CompraVenta
 
@@ -53,6 +53,7 @@ class MultipropietarioHandler:
             case CONSTANTS.ESCENARIO1_VALUE:
                 print('E1')
                 RegularizacionPatrimonio.add_form_to_multipropietario(db, formulario)
+                merge_multipropietarios(db, formulario)
 
             case CONSTANTS.ESCENARIO2_VALUE:
                 print('E2')
@@ -142,7 +143,7 @@ class MultipropietarioHandler:
 
             elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
                 print('Compraventa E3')
-                CompraVenta.Enajenante_1_Adquiriente_1(formulario, db, tabla_multipropietario,
+                CompraVenta.enajenante_1_adquiriente_1(formulario, db, tabla_multipropietario,
                                                        multi_solo_enajenantes, multi_sin_enajenantes)
 
             else:
@@ -222,12 +223,12 @@ class MultipropietarioHandler:
                                 formulario.fojas, formulario.fecha_inscripcion, formulario.num_inscripcion,
                                 enajenantes, adquirentes)
 
-    def search_multipropietario(self, request):
+    def search_multipropietario(self, db, request):
         comuna = request.form.get('comuna')
         manzana = request.form.get('manzana')
         predio = request.form.get('predio')
         ano_vigencia = request.form.get('ano_vigencia')
-        search_results = Multipropietario.query.filter(
+        search_results = db.session.query(Multipropietario).filter(
             and_(
                 Multipropietario.comuna == comuna,
                 Multipropietario.manzana == manzana,

@@ -36,32 +36,31 @@ class Enajenante(db.Model):
     __tablename__ = 'enajenante'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     porc_derecho: float = db.Column(db.Float)
-    form_id = db.Column(db.Integer, db.ForeignKey(
-        'formulario.n_atencion', ondelete='CASCADE'), nullable=False)
-    run_rut = db.Column(db.String(50), db.ForeignKey(
-        'persona.run_rut'), nullable=False)
+    form_id = db.Column(db.Integer, db.ForeignKey('formulario.n_atencion', ondelete='CASCADE'), nullable=False)
+    run_rut = db.Column(db.String(50), db.ForeignKey('persona.run_rut'), nullable=False)
+
+    def __repr__(self):
+        return f"Rut: {self.run_rut}, derecho: {self.porc_derecho}"
 
 
 class Adquirente(db.Model):
     __tablename__ = 'adquirente'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     porc_derecho: float = db.Column(db.Float)
-    form_id: int = db.Column(db.Integer, db.ForeignKey(
-        'formulario.n_atencion', ondelete='CASCADE'), nullable=False)
-    run_rut: str = db.Column(db.String(50), db.ForeignKey(
-        'persona.run_rut'), nullable=False)
+    form_id: int = db.Column(db.Integer, db.ForeignKey('formulario.n_atencion', ondelete='CASCADE'), nullable=False)
+    run_rut: str = db.Column(db.String(50), db.ForeignKey('persona.run_rut'), nullable=False)
 
 
 class Multipropietario(db.Model):
     def __repr__(self) -> str:
-        return f"Mz: {self.manzana}, Pr: {self.predio}, RUT: {self.run_rut}, Derecho: {self.porc_derecho}"
+        return f"CM: {self.comuna}, Mz: {self.manzana}, Pr: {self.predio}, RUT: {self.run_rut}, Derecho: {self.porc_derecho}"
+
     __tablename__ = 'multipropietario'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     comuna: str = db.Column(db.String(50), index=True)
     manzana: str = db.Column(db.String(50), index=True)
     predio: str = db.Column(db.String(50), index=True)
-    run_rut: str = db.Column(db.String(50), db.ForeignKey(
-        'persona.run_rut'))
+    run_rut: str = db.Column(db.String(50), db.ForeignKey('persona.run_rut'))
     porc_derecho: float = db.Column(db.Float)
     fojas: int = db.Column(db.Integer)
     ano_inscripcion: int = db.Column(db.Integer)

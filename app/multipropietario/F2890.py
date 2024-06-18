@@ -2,7 +2,7 @@ from typing import List
 from multipropietario.multipropietario_tools import (
     generate_multipropietario_entry_from_formulario, FormularioObject, remove_from_multipropietario, element_exist)
 from flask_sqlalchemy import SQLAlchemy
-from models import Multipropietario, Formulario
+from models import Multipropietario, Formulario, Enajenante
 from tools import is_empty, CONSTANTS
 
 
@@ -91,16 +91,26 @@ class CompraVenta:
             CompraVenta.update_multipropietario_unchanged_porcentaje(db, formulario, multipropietarios_sin_enajenantes)
 
     @staticmethod
-    def Enajenante_1_Adquiriente_1(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
+    def enajenante_1_adquiriente_1(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
                                    multipropietarios_solo_enajenantes: List[Multipropietario],
                                    multipropietarios_sin_enajenantes: List[Multipropietario]):
         # caso 3 ADQ 1-99 ENA y ADQ == 1
 
         CompraVenta.limit_date_or_delete_multipropietarios_entries(db, formulario, tabla_multipropietario)
 
-        porc_derecho_nuevo_adq = (
-            (formulario.adquirentes[0].porc_derecho * CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
-        porc_derecho_nuevo_ena = CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes) - porc_derecho_nuevo_adq
+        fantasmas = CompraVenta.generate_fantasmas(formulario, multipropietarios_solo_enajenantes)
+
+        if fantasmas:
+            multipropietarios_solo_enajenantes = fantasmas
+            porc_derecho_nuevo_adq = formulario.adquirentes[0].porc_derecho
+            porc_derecho_nuevo_ena = 100 - porc_derecho_nuevo_adq
+
+            db.session.add(fantasmas[0])
+
+        else:
+            porc_derecho_nuevo_adq = ((formulario.adquirentes[0].porc_derecho *
+                                       CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
+            porc_derecho_nuevo_ena = CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes) - porc_derecho_nuevo_adq
 
         CompraVenta.update_porcentaje_on_enajenantes(db, formulario, multipropietarios_solo_enajenantes, porc_derecho_nuevo_ena)
         CompraVenta.update_multipropietario_unchanged_porcentaje(db, formulario, multipropietarios_sin_enajenantes)
@@ -127,11 +137,12 @@ class CompraVenta:
 
     @staticmethod
     def update_porcentaje_on_enajenantes(db: SQLAlchemy, formulario: Formulario,
-                                         multipropietarios_solo_enajenantes: List[Multipropietario], porc_derech_nuevo_ena):
+                                         multipropietarios_solo_enajenantes: List[Multipropietario], porc_derecho_nuevo_ena):
         for multipropietario in multipropietarios_solo_enajenantes:
-            updated_previous_multipropietario = CompraVenta.update_multipropietario_change_porcentaje(
-                formulario, multipropietario, porc_derech_nuevo_ena)
-            db.session.add(updated_previous_multipropietario)
+            if multipropietario.fecha_inscripcion:
+                updated_previous_multipropietario = CompraVenta.update_multipropietario_change_porcentaje(
+                    formulario, multipropietario, porc_derecho_nuevo_ena)
+                db.session.add(updated_previous_multipropietario)
 
     @staticmethod
     def multiples_adquirientes_and_enajenantes_1_99(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario,
@@ -223,3 +234,38 @@ class CompraVenta:
                 return False
         # If all enajenantes are found, return True
         return True
+
+    @staticmethod
+    def generate_fantasmas(formulario: FormularioObject, multipropietarios_solo_enajenantes: List[Multipropietario]):
+        enajenantes = formulario.enajenantes
+        fantasmas = []
+        for enajenante in enajenantes:
+            is_fantasma = True
+            for element in multipropietarios_solo_enajenantes:
+                if enajenante.run_rut == element.run_rut:
+                    is_fantasma = False
+                    break
+            if is_fantasma:
+                fantasmas.append(enajenante)
+
+        return list(map(lambda enajenante: CompraVenta.convert_fantasma_into_multipropietario(formulario, enajenante), fantasmas))
+
+    @staticmethod
+    def convert_fantasma_into_multipropietario(formulario: FormularioObject, enajenante: Enajenante):
+        return Multipropietario(
+            comuna=formulario.comuna,
+            manzana=formulario.manzana,
+            predio=formulario.predio,
+            run_rut=enajenante.run_rut,
+            porc_derecho=0,
+            fojas=None,
+            ano_inscripcion=None,
+            num_inscripcion=None,
+            fecha_inscripcion=None,
+            ano_vigencia_inicial=None,
+            ano_vigencia_final=None
+        )
+
+    # @staticmethod
+    # def add_fantasma_into_multipropietario(db: SQLAlchemy, fantasma: Multipropietario):
+    #     db.sessionfantasma
