@@ -4,6 +4,7 @@ from app.models import db, Multipropietario, Formulario
 from app.json_processing import (process_and_save_json_into_db, parse_json_and_save_form_in_db,
                                  parse_json_and_save_enajenantes_in_db, parse_json_and_save_adquirientes_in_db)
 from app.multipropietario.multipropietario_handler import MultipropietarioHandler
+from app.multipropietario.multipropietario_tools import ajustar_porcentajes
 import json
 from datetime import date
 
@@ -59,6 +60,43 @@ class JsonProcessing(unittest.TestCase):
             results = db.session.query(Multipropietario).all()
 
             with open("tests/control2_results.json", 'r') as file:
+                expected_results = json.load(file)
+
+                for result, expected in zip(results, expected_results):
+                    assert result.comuna == expected["comuna"]
+                    assert result.manzana == expected["manzana"]
+                    assert result.predio == expected["predio"]
+                    assert result.run_rut == expected["run_rut"]
+                    assert result.porc_derecho == expected["porc_derecho"]
+                    assert result.fojas == expected["fojas"]
+                    assert result.ano_inscripcion == expected["ano_inscripcion"]
+                    assert result.num_inscripcion == expected["num_inscripcion"]
+                    assert result.fecha_inscripcion.strftime('%Y-%m-%d') == expected["fecha_inscripcion"]
+                    assert result.ano_vigencia_inicial == expected["ano_vigencia_inicial"]
+                    assert result.ano_vigencia_final == expected["ano_vigencia_final"]
+
+                assert len(results) == len(expected_results)
+
+    def test_json_processing_control5(self):
+        multiprop_handler = MultipropietarioHandler()
+
+        with self.app.app_context():
+            with open('tests/control5.json', 'r') as file:
+                control2_json = json.load(file)
+                is_valid_json = process_and_save_json_into_db(db, control2_json)
+
+            if is_valid_json:
+                converted_forms_list = multiprop_handler.convert_json_into_object_list(control2_json)
+                for form in converted_forms_list:
+                    multiprop_handler.process_new_formulario_object(db, form)
+                    ajustar_porcentajes(db, form)
+                db.session.commit()
+
+            results = db.session.query(Multipropietario).all()
+
+            print('Results: ', results)
+
+            with open("tests/control5_results.json", 'r') as file:
                 expected_results = json.load(file)
 
                 for result, expected in zip(results, expected_results):
