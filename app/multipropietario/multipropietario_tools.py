@@ -123,12 +123,15 @@ def merge_multipropietarios(db: SQLAlchemy, formulario: FormularioObject) -> Lis
     multipropietarios = db.session.query(Multipropietario).filter_by(comuna=formulario.comuna,
                                                                      manzana=formulario.manzana,
                                                                      predio=formulario.predio
-                                                                     ).order_by(asc(Multipropietario.ano_vigencia_inicial)).all()
+                                                                     ).order_by(asc(Multipropietario.ano_vigencia_inicial))
+    temp_multipropietarios = multipropietarios.all()
+    last_period_year = temp_multipropietarios[-1].ano_vigencia_inicial
+    multipropietarios = multipropietarios.filter_by(ano_vigencia_inicial=last_period_year).all()
 
     merged_dict = {}
 
     for obj in multipropietarios:
-        key = (obj.comuna, obj.manzana, obj.predio, obj.run_rut, obj.ano_vigencia_inicial)
+        key = (obj.comuna, obj.manzana, obj.predio, obj.run_rut)
 
         if key in merged_dict:
             merged_dict[key].porc_derecho += obj.porc_derecho

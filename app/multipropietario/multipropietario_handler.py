@@ -24,6 +24,9 @@ class MultipropietarioHandler:
         else:
             print(f"Nivel inesperado: {formulario.cne}")
 
+        merge_multipropietarios(db, formulario)
+        ajustar_porcentajes(db, formulario)
+
     def process_regularizacion_patrimonio(self, db, formulario: FormularioObject):
 
         query = db.session.query(Multipropietario).filter_by(comuna=formulario.comuna,
@@ -53,8 +56,6 @@ class MultipropietarioHandler:
             case CONSTANTS.ESCENARIO1_VALUE:
                 print('E1')
                 RegularizacionPatrimonio.add_form_to_multipropietario(db, formulario)
-                merge_multipropietarios(db, formulario)
-                # ajustar_porcentajes(db, formulario)
 
             case CONSTANTS.ESCENARIO2_VALUE:
                 print('E2')
@@ -151,11 +152,6 @@ class MultipropietarioHandler:
                 print('Compraventa E4')
                 CompraVenta.multiples_adquirientes_and_enajenantes_1_99(formulario, db, tabla_multipropietario,
                                                                         multi_solo_enajenantes, multi_sin_enajenantes)
-                merge_multipropietarios(db, formulario)
-                ajustar_porcentajes(db, formulario)
-
-        # else:
-        #     print("enajenante fantasma")
 
     def convert_form_into_object(self, form: FormularioForm) -> FormularioObject:
         parsed_enajenantes = []

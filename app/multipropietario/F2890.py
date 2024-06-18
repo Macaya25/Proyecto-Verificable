@@ -119,6 +119,10 @@ class CompraVenta:
             formulario, formulario.adquirentes[0].run_rut, porc_derecho_nuevo_adq)
         db.session.add(new_multipropietario)
 
+        final = db.session.query(Multipropietario).all()
+        for e in final:
+            print(e)
+
     @staticmethod
     def update_multipropietario_change_porcentaje(formulario: Formulario, multipropietario: Multipropietario, new_derecho):
         return Multipropietario(

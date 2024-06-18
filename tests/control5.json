@@ -111,6 +111,35 @@
         "fojas": 2,
         "fechaInscripcion": "2014-06-06",
         "nroInscripcion": 444
+      },
+      {
+        "CNE": 99,
+        "bienRaiz": {
+          "comuna": 77,
+          "manzana": 266,
+          "predio": 32
+        },
+        "adquirentes": [
+          {
+            "RUNRUT": "3-5",
+            "porcDerecho": 1.3
+          },
+          {
+            "RUNRUT": "1-9",
+            "porcDerecho": 2.3
+          },
+          {
+            "RUNRUT": "61-2",
+            "porcDerecho": 3.3
+          },
+          {
+            "RUNRUT": "3-5",
+            "porcDerecho": 4.3
+          }
+        ],
+        "fojas": 2,
+        "fechaInscripcion": "2014-06-06",
+        "nroInscripcion": 444
       }
     ]
   }
