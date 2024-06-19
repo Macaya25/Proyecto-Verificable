@@ -33,7 +33,7 @@ def render_home_page() -> str:
 
 
 @app.route('/form', methods=['GET'])
-def get_create_form_route():
+def get_create_form_view():
     form = FormularioForm()
 
     # Add the comunas from database to the Formulario object to show on the Web UI as options
@@ -70,7 +70,21 @@ def show_all_forms_route():
     return render_template('show_all_forms.html', forms=forms, cnes=cnes, comunas=comunas)
 
 
-@app.route('/form/json', methods=['GET', 'POST'])
+@app.route('/form/json', methods=['GET'])
+def get_create_json_form_view():
+    form = JSONForm()
+
+    # if form.validate_on_submit():
+    #     submitted_file = form.file.data
+    #     is_valid_json = analyse_json_save_into_db_and_process_it(db, multiprop_handler, submitted_file)
+
+    #     if is_valid_json:
+    #         return redirect(url_for('show_all_forms_route'))
+
+    return render_template('create_form_JSON.html', form=form)
+
+
+@app.route('/form/submit_json', methods=['POST'])
 def create_json_form_route():
     form = JSONForm()
 
@@ -80,8 +94,6 @@ def create_json_form_route():
 
         if is_valid_json:
             return redirect(url_for('show_all_forms_route'))
-
-    return render_template('create_form_JSON.html', form=form)
 
 
 @app.route('/forms/<int:n_atencion>')

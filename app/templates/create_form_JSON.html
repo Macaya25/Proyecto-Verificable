@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('create_json_form_route') }}">
     <h1> Ingresar Formularios mediante JSON</h1>
     <br/>
     {{ form.hidden_tag() }}
