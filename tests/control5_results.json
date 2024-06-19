@@ -20,6 +20,10 @@
     {"comuna": "77", "manzana": "266", "predio": "32", "run_rut": "3-5", "porc_derecho": 3.49, "fojas": 2, "ano_inscripcion": 2014, "num_inscripcion": 444, "fecha_inscripcion": "2014-06-06", "ano_vigencia_inicial": 2016, "ano_vigencia_final": null},
     {"comuna": "77", "manzana": "266", "predio": "32", "run_rut": "61-2", "porc_derecho": 3.13, "fojas": 2, "ano_inscripcion": 2014, "num_inscripcion": 444, "fecha_inscripcion": "2014-06-06", "ano_vigencia_inicial": 2016, "ano_vigencia_final": null},
     {"comuna": "77", "manzana": "266", "predio": "32", "run_rut": "5-1", "porc_derecho": 46.69, "fojas": 33, "ano_inscripcion": 2016, "num_inscripcion": 8254, "fecha_inscripcion": "2016-03-21", "ano_vigencia_inicial": 2016, "ano_vigencia_final": null},
-    {"comuna": "77", "manzana": "266", "predio": "32", "run_rut": "6-K", "porc_derecho": 46.69, "fojas": 33, "ano_inscripcion": 2016, "num_inscripcion": 8254, "fecha_inscripcion": "2016-03-21", "ano_vigencia_inicial": 2016, "ano_vigencia_final": null}
+    {"comuna": "77", "manzana": "266", "predio": "32", "run_rut": "6-K", "porc_derecho": 46.69, "fojas": 33, "ano_inscripcion": 2016, "num_inscripcion": 8254, "fecha_inscripcion": "2016-03-21", "ano_vigencia_inicial": 2016, "ano_vigencia_final": null},
+
+    {"comuna": "77", "manzana": "267", "predio": "32", "run_rut": "61-2", "porc_derecho": 19.0, "fojas": 2, "ano_inscripcion": 2014, "num_inscripcion": 444, "fecha_inscripcion": "2014-06-06", "ano_vigencia_inicial": 2014, "ano_vigencia_final": null},
+    {"comuna": "77", "manzana": "267", "predio": "32", "run_rut": "3-5", "porc_derecho": 27.0, "fojas": 654, "ano_inscripcion": 2014, "num_inscripcion": 54, "fecha_inscripcion": "2014-07-07", "ano_vigencia_inicial": 2014, "ano_vigencia_final": null},
+    {"comuna": "77", "manzana": "267", "predio": "32", "run_rut": "1-9", "porc_derecho": 54.0, "fojas": 654, "ano_inscripcion": 2014, "num_inscripcion": 54, "fecha_inscripcion": "2014-07-07", "ano_vigencia_inicial": 2014, "ano_vigencia_final": null}
 
 ]
