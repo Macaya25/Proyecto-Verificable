@@ -85,6 +85,9 @@ class CompraVenta:
                            multipropietarios_sin_enajenantes: List[Multipropietario]):
         porc_derecho_nuevo = (CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes)/len(formulario.adquirentes))
 
+        if porc_derecho_nuevo == 0:
+            porc_derecho_nuevo = 100 / len(formulario.adquirentes)
+
         for adquirente in formulario.adquirentes:
             new_multipropietario = generate_multipropietario_entry_from_formulario(formulario, adquirente.run_rut, porc_derecho_nuevo)
             db.session.add(new_multipropietario)
