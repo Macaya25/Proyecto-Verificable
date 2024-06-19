@@ -110,7 +110,8 @@ class CompraVenta:
         else:
             porc_derecho_nuevo_adq = ((formulario.adquirentes[0].porc_derecho *
                                        CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
-            porc_derecho_nuevo_ena = CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes) - porc_derecho_nuevo_adq
+            porc_derecho_nuevo_ena = CompraVenta.sum_porc_derecho(
+                multipropietarios_solo_enajenantes) * (100 - formulario.enajenantes[0].porc_derecho)/100
 
         CompraVenta.update_porcentaje_on_enajenantes(db, formulario, multipropietarios_solo_enajenantes, porc_derecho_nuevo_ena)
         CompraVenta.update_multipropietario_unchanged_porcentaje(db, formulario, multipropietarios_sin_enajenantes)
