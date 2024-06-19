@@ -168,14 +168,17 @@ def ajustar_porcentajes(db: SQLAlchemy, formulario: FormularioObject):
         total_percentage += multiprop.porc_derecho
 
     if total_percentage > 100:
+        print('More than 100')
         for multiprop in multipropietarios:
             multiprop.porc_derecho = multiprop.porc_derecho * 100 / total_percentage
 
     elif total_percentage < 100:
+        print('Percentage: ', total_percentage)
         missing_percentage = 100 - total_percentage
 
         missing_elements_amount = 0
         for multiprop in multipropietarios:
+            print(multiprop)
             if multiprop.porc_derecho == 0:
                 missing_elements_amount += 1
 

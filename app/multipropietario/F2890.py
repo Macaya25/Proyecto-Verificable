@@ -56,9 +56,14 @@ class CompraVenta:
         # caso 1 ADQ 100
         CompraVenta.update_multipropietario_unchanged_porcentaje(db, formulario, multipropietarios_sin_enajenantes)
 
+        total_percentage = CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes)
+
+        if total_percentage == 0:
+            total_percentage = 100
+
         for adquirente in formulario.adquirentes:
             porc_derech_nuevo = (
-                (adquirente.porc_derecho * CompraVenta.sum_porc_derecho(multipropietarios_solo_enajenantes))/100)
+                (adquirente.porc_derecho * total_percentage)/100)
             new_multipropietario = generate_multipropietario_entry_from_formulario(formulario, adquirente.run_rut, porc_derech_nuevo)
             db.session.add(new_multipropietario)
 
