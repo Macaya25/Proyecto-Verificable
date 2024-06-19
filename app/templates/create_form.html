@@ -4,7 +4,7 @@
 
 <div class="container mt-5">
     <h1 class="mb-4">Registrar Formulario</h1>
-    <form method="post" id="formulario">
+    <form method="post" id="formulario"  action="{{ url_for('create_form_route') }}">
         {{ form.hidden_tag() }}
 
         <div class="row">

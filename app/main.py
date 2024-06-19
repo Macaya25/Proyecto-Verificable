@@ -28,20 +28,27 @@ multiprop_handler = MultipropietarioHandler()
 
 
 @app.route('/')
-def home_route() -> str:
+def render_home_page() -> str:
     return render_template('home.html')
 
 
-@app.route('/form', methods=['GET', 'POST'])
-def create_form_route():
+@app.route('/form', methods=['GET'])
+def get_create_form_route():
     form = FormularioForm()
 
     # Add the comunas from database to the Formulario object to show on the Web UI as options
     form.comuna.choices = [(comuna.id, comuna.descripcion)
                            for comuna in Comuna.query.order_by('descripcion')]
 
-    if request.method == 'POST' and form.validate_on_submit():
+    return render_template('create_form.html', form=form)
 
+
+@app.route('/create_form', methods=['POST'])
+def create_form_route():
+
+    form = FormularioForm()
+
+    if form.validate_on_submit():
         new_formulario = add_formulario_to_database_from_form(db, form)
         add_adquirientes_to_database_from_form(db, form, new_formulario)
 
@@ -53,10 +60,6 @@ def create_form_route():
         db.session.commit()
         flash('Formulario registrado con éxito!')
         return redirect(url_for('show_all_forms_route'))
-    else:
-        print(form.errors)
-
-    return render_template('create_form.html', form=form)
 
 
 @app.route('/forms')
