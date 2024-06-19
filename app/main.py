@@ -47,6 +47,8 @@ def get_create_form_view():
 def create_form_route():
 
     form = FormularioForm()
+    form.comuna.choices = [(comuna.id, comuna.descripcion)
+                           for comuna in Comuna.query.order_by('descripcion')]
 
     if form.validate_on_submit():
         new_formulario = add_formulario_to_database_from_form(db, form)
@@ -60,6 +62,14 @@ def create_form_route():
         db.session.commit()
         flash('Formulario registrado con éxito!')
         return redirect(url_for('show_all_forms_route'))
+
+    else:
+        # Print form errors and data for debugging
+        print("Form validation failed")
+        print("Form errors: ", form.errors)
+        print("Form data: ", form.data)
+        flash('Formulario no fue registrado. Por favor, corrige los errores e intenta de nuevo.')
+        return render_template('show_all_forms_route.html', form=form)
 
 
 @app.route('/forms')

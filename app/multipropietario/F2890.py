@@ -199,7 +199,6 @@ class CompraVenta:
 
                     db.session.add(updated_previous_multipropietario)
 
-        print('Formulario adqs: ', formulario.adquirentes)
         for adquiriente in formulario.adquirentes:
             new_multipropietario = generate_multipropietario_entry_from_formulario(
                 formulario, adquiriente.run_rut, adquiriente.porc_derecho)
