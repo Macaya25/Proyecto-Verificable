@@ -132,7 +132,7 @@ class MultipropietarioHandler:
         sum_porc_adquirientes = CompraVenta.sum_porc_derecho(formulario.adquirentes)
 
         if future_multipropietarios:
-            reprocess_multipropietario_entries_with_new_formulario(db, self, formulario, tabla_multipropietario)
+            reprocess_multipropietario_entries_with_new_formulario(db, self, formulario, future_multipropietarios)
 
         else:
             if sum_porc_adquirientes == 100:

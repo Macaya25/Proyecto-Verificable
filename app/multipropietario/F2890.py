@@ -43,8 +43,7 @@ class RegularizacionPatrimonio:
             rut_adquiriente = adquiriente.run_rut
             porc_derecho_adquiriente = adquiriente.porc_derecho
 
-            new_multipropietario = generate_multipropietario_entry_from_formulario(
-                formulario, rut_adquiriente, porc_derecho_adquiriente)
+            new_multipropietario = generate_multipropietario_entry_from_formulario(formulario, rut_adquiriente, porc_derecho_adquiriente)
             db.session.add(new_multipropietario)
 
 

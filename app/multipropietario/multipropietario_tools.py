@@ -1,6 +1,6 @@
 from typing import List, Set
 from datetime import date
-from models import Multipropietario, Adquirente, Enajenante, Formulario
+from models import Multipropietario, Adquirente, Enajenante, Formulario, Comuna
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import asc
 
@@ -18,6 +18,9 @@ class FormularioObject:
         self.num_inscripcion = num_inscripcion
         self.enajenantes = enajenantes
         self.adquirentes = adquirentes
+
+    def __repr__(self):
+        return f"CNE: {self.cne}, Rol: {self.comuna}-{self.manzana}-{self.predio}, Fecha: {self.fecha_inscripcion}"
 
 
 def remove_from_multipropietario(db, entries_after_current_form: List[Multipropietario]):
@@ -40,8 +43,10 @@ def element_exist(session, element):
 
 
 def reprocess_multipropietario_entries_with_new_formulario(db, handler, formulario, entries: List[Multipropietario]):
-    remove_from_multipropietario(db, entries)
+    print('Multiprop: ', entries)
     sorted_formularios = add_formulario_with_multipropietarios_and_sort(db, formulario, entries)
+    print('Sorted: ', sorted_formularios)
+    remove_from_multipropietario(db, entries)
     reprocess_formularios(db, handler, sorted_formularios)
 
 
@@ -88,6 +93,7 @@ def get_formularios_from_multipropietarios(db, entries: List[Multipropietario]) 
         source_form = db.session.query(Formulario).filter_by(
             comuna=entry.comuna, manzana=entry.manzana, predio=entry.predio,
             fojas=entry.fojas, fecha_inscripcion=entry.fecha_inscripcion).first()
+        print('Source: ', db.session.query(Comuna).all())
         if source_form:
             forms.add(source_form)
     sorted_forms = sorted(list(forms), key=lambda x: x.fecha_inscripcion)
@@ -113,13 +119,14 @@ def reprocess_formularios(db: SQLAlchemy, handler, formularios: List[Formulario]
 
 def add_formulario_with_multipropietarios_and_sort(db, formulario: Formulario, multipropietarios: List[Multipropietario]):
     past_formularios: List[Formulario] = get_formularios_from_multipropietarios(db, multipropietarios)
+    print('Formularios to reprocess: ', past_formularios)
     past_formularios.append(formulario)
     sorted_formularios = sorted(list(past_formularios), key=lambda x: x.fecha_inscripcion)
     return sorted_formularios
 
 
 def merge_multipropietarios(db: SQLAlchemy, formulario: FormularioObject) -> List[Multipropietario]:
-
+    print('Merging')
     multipropietarios = db.session.query(Multipropietario).filter_by(comuna=formulario.comuna,
                                                                      manzana=formulario.manzana,
                                                                      predio=formulario.predio
