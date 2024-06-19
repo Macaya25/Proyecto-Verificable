@@ -1,6 +1,6 @@
 from typing import List, Set
 from datetime import date
-from models import Multipropietario, Adquirente, Enajenante, Formulario, Comuna
+from models import Multipropietario, Adquirente, Enajenante, Formulario
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import asc
 
@@ -93,7 +93,6 @@ def get_formularios_from_multipropietarios(db, entries: List[Multipropietario]) 
         source_form = db.session.query(Formulario).filter_by(
             comuna=entry.comuna, manzana=entry.manzana, predio=entry.predio,
             fojas=entry.fojas, fecha_inscripcion=entry.fecha_inscripcion).first()
-        print('Source: ', db.session.query(Comuna).all())
         if source_form:
             forms.add(source_form)
     sorted_forms = sorted(list(forms), key=lambda x: x.fecha_inscripcion)
