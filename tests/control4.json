@@ -147,6 +147,76 @@
     "fojas": 5,
     "fechaInscripcion": "2021-07-23",
     "nroInscripcion": 5432
+  },
+  {
+    "_comment": "4",
+    "CNE": 99,
+    "bienRaiz": {
+      "comuna": 1101,
+      "manzana": 12,
+      "predio": 9
+    },
+    "adquirentes": [
+      {
+        "RUNRUT": "2-7",
+        "porcDerecho": 10
+      },
+      {
+        "RUNRUT": "3-5",
+        "porcDerecho": 20
+      },
+      {
+        "RUNRUT": "88-9",
+        "porcDerecho": 25
+      },
+      {
+        "RUNRUT": "150-4",
+        "porcDerecho": 15
+      }
+    ],
+    "fojas": 32,
+    "fechaInscripcion": "2021-01-01",
+    "nroInscripcion": 1
+  },
+   {
+    "_comment": "4",
+    "CNE": 8,
+    "bienRaiz": {
+      "comuna": 1101,
+      "manzana": 12,
+      "predio": 9
+    },
+    "enajenantes": [
+      {
+        "RUNRUT": "2-7",
+        "porcDerecho": 15
+      },
+      {
+        "RUNRUT": "3-5",
+        "porcDerecho": 15
+      },
+      {
+        "RUNRUT": "1-9",
+        "porcDerecho": 15
+      }
+    ],
+    "adquirentes": [
+      {
+        "RUNRUT": "125-2",
+        "porcDerecho": 20
+      },
+      {
+        "RUNRUT": "140-3",
+        "porcDerecho": 15
+      },
+      {
+        "RUNRUT": "150-4",
+        "porcDerecho": 10
+      }
+    ],
+    "fojas": 2141,
+    "fechaInscripcion": "2022-06-01",
+    "nroInscripcion": 123
   }
     ]
 }

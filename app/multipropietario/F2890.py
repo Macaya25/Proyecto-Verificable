@@ -137,7 +137,7 @@ class CompraVenta:
             run_rut=multipropietario.run_rut,
             porc_derecho=new_derecho,
             fojas=multipropietario.fojas,
-            ano_inscripcion=multipropietario.fecha_inscripcion.year,
+            ano_inscripcion=multipropietario.ano_inscripcion,
             num_inscripcion=multipropietario.num_inscripcion,
             fecha_inscripcion=multipropietario.fecha_inscripcion,
             ano_vigencia_inicial=formulario.fecha_inscripcion.year,

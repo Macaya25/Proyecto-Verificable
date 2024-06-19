@@ -192,3 +192,22 @@ def ajustar_porcentajes(db: SQLAlchemy, formulario: FormularioObject):
         for multiprop in multipropietarios:
             if multiprop.porc_derecho == 0:
                 multiprop.porc_derecho = missing_percentage / missing_elements_amount
+
+    delete_multipropietarios_with_0_derecho(db, formulario)
+
+
+def delete_multipropietarios_with_0_derecho(db: SQLAlchemy, formulario: FormularioObject):
+    multipropietarios: List[Multipropietario] = db.session.query(Multipropietario).filter_by(
+        comuna=formulario.comuna,
+        manzana=formulario.manzana,
+        predio=formulario.predio
+    ).order_by(asc(Multipropietario.ano_vigencia_inicial))
+
+    temp_multipropietarios = multipropietarios.all()
+    last_period_year = temp_multipropietarios[-1].ano_vigencia_inicial
+
+    multipropietarios = multipropietarios.filter_by(ano_vigencia_inicial=last_period_year).all()
+
+    for multiprop in multipropietarios:
+        if multiprop.porc_derecho == 0:
+            db.session.delete(multiprop)
