@@ -49,6 +49,20 @@ class RegularizacionPatrimonio:
 
 class CompraVenta:
     @staticmethod
+    def check_escenario(formulario, sum_porc_adquirientes) -> int:
+        if sum_porc_adquirientes == 100:
+            return CONSTANTS.ESCENARIO1_VALUE
+
+        elif sum_porc_adquirientes == 0:
+            return CONSTANTS.ESCENARIO2_VALUE
+
+        elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
+            return CONSTANTS.ESCENARIO3_VALUE
+
+        else:
+            return CONSTANTS.ESCENARIO4_VALUE
+
+    @staticmethod
     def sum_adquirientes_100(formulario: FormularioObject, db: SQLAlchemy, tabla_multipropietario: List[Multipropietario],
                              multipropietarios_solo_enajenantes: List[Multipropietario],
                              multipropietarios_sin_enajenantes: List[Multipropietario]):

@@ -21,9 +21,9 @@ class SearchForm(FlaskForm):
         super(SearchForm, self).__init__(*args, **kwargs)
         self.region.choices = [('', 'Seleccione Región')] + [(region.id, region.descripcion)
                                                              for region in Region.query.order_by('descripcion').all()]
-        self.region.coerce = lambda value: int(value) if value is not None and value != '' else None
+        self.region.coerce = self.convert_dropdown_choice_to_int
+        self.comuna.coerce = self.convert_dropdown_choice_to_int
         self.comuna.choices = [('', 'Seleccione Comuna')]
-        self.comuna.coerce = lambda value: int(value) if value is not None and value != '' else None
         self.update_comunas()
 
     def update_comunas(self):
@@ -33,6 +33,13 @@ class SearchForm(FlaskForm):
                                    for comuna in Comuna.query.filter_by(id_region=region_id).order_by('descripcion').all()]
         else:
             self.comuna.choices = [('', 'Seleccione Comuna')]
+
+    @staticmethod
+    def convert_dropdown_choice_to_int(value):
+        try:
+            return int(value) if value is not None and value != '' else None
+        except ValueError:
+            return None
 
 
 class PersonaForm(FlaskForm):

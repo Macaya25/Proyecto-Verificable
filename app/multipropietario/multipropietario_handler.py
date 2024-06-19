@@ -29,24 +29,10 @@ class MultipropietarioHandler:
 
     def process_regularizacion_patrimonio(self, db, formulario: FormularioObject):
 
-        query = db.session.query(Multipropietario).filter_by(comuna=formulario.comuna,
-                                                             manzana=formulario.manzana,
-                                                             predio=formulario.predio
-                                                             ).order_by(asc(Multipropietario.ano_vigencia_inicial))
-
-        tabla_multipropietario: List[Multipropietario] = query.all()
-
-        before_current_form_query = query.filter(
-            Multipropietario.ano_vigencia_inicial < formulario.fecha_inscripcion)
-        before_current_form = before_current_form_query.all()
-
-        same_year_current_form_query = query.filter(
-            Multipropietario.ano_vigencia_inicial == formulario.fecha_inscripcion)
-        same_year_current_form = same_year_current_form_query.all()
-
-        after_current_form_query = query.filter(
-            Multipropietario.ano_vigencia_inicial > formulario.fecha_inscripcion)
-        after_current_form = after_current_form_query.all()
+        tabla_multipropietario = self.generate_regularizacion_multipropietarios(db, formulario)
+        before_current_form = self.generate_regularizacion_before_current_formulario(db, formulario)
+        same_year_current_form = self.generate_regularizacion_same_current_formulario(db, formulario)
+        after_current_form = self.generate_regularizacion_after_current_formulario(db, formulario)
 
         current_escenario = RegularizacionPatrimonio.check_escenario(tabla_multipropietario,
                                                                      before_current_form, after_current_form,
@@ -96,6 +82,87 @@ class MultipropietarioHandler:
 
     def process_compraventa(self, db, formulario: FormularioObject):
 
+        tabla_multipropietario, future_multipropietarios = self.generate_compraventa_multipropietarios_tables(db, formulario)
+
+        # Create a list of run_ruts for all enajenantes
+        enajenante_run_ruts = [enajenante.run_rut for enajenante in formulario.enajenantes]
+
+        multi_sin_enajenantes, multi_solo_enajenantes = CompraVenta.separate_multipropietario_enajenantes_from_multipropietario_list(
+            tabla_multipropietario, enajenante_run_ruts)
+
+        sum_porc_adquirientes = CompraVenta.sum_porc_derecho(formulario.adquirentes)
+
+        if future_multipropietarios:
+            forms_to_reprocess = tabla_multipropietario + future_multipropietarios
+            reprocess_multipropietario_entries_with_new_formulario(db, self, formulario, forms_to_reprocess)
+
+        else:
+            current_escenario = CompraVenta.check_escenario(formulario, sum_porc_adquirientes)
+
+            match current_escenario:
+                case CONSTANTS.ESCENARIO1_VALUE:
+                    print('Compraventa E1')
+                    CompraVenta.sum_adquirientes_100(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
+
+                case CONSTANTS.ESCENARIO2_VALUE:
+                    print('Compraventa E2')
+                    CompraVenta.sum_adquirientes_0(formulario, db, multi_solo_enajenantes, multi_sin_enajenantes)
+
+                case CONSTANTS.ESCENARIO3_VALUE:
+                    print('Compraventa E3')
+                    CompraVenta.enajenante_1_adquiriente_1(formulario, db, tabla_multipropietario,
+                                                           multi_solo_enajenantes, multi_sin_enajenantes)
+                case CONSTANTS.ESCENARIO4_VALUE:
+                    print('Compraventa E4')
+                    CompraVenta.multiples_adquirientes_and_enajenantes_1_99(formulario, db, tabla_multipropietario,
+                                                                            multi_solo_enajenantes, multi_sin_enajenantes)
+
+    def generate_regularizacion_multipropietarios(self, db, formulario):
+
+        query = self.generate_regularizacion_query(db, formulario)
+
+        tabla_multipropietario: List[Multipropietario] = query.all()
+
+        return tabla_multipropietario
+
+    @staticmethod
+    def generate_regularizacion_query(db, formulario):
+        query = db.session.query(Multipropietario).filter_by(comuna=formulario.comuna,
+                                                             manzana=formulario.manzana,
+                                                             predio=formulario.predio
+                                                             ).order_by(asc(Multipropietario.ano_vigencia_inicial))
+
+        return query
+
+    def generate_regularizacion_before_current_formulario(self, db, formulario):
+        query = self.generate_regularizacion_query(db, formulario)
+
+        before_current_form_query = query.filter(
+            Multipropietario.ano_vigencia_inicial < formulario.fecha_inscripcion)
+        before_current_form = before_current_form_query.all()
+
+        return before_current_form
+
+    def generate_regularizacion_same_current_formulario(self, db, formulario):
+        query = self.generate_regularizacion_query(db, formulario)
+
+        same_year_current_form_query = query.filter(
+            Multipropietario.ano_vigencia_inicial == formulario.fecha_inscripcion)
+        same_year_current_form = same_year_current_form_query.all()
+
+        return same_year_current_form
+
+    def generate_regularizacion_after_current_formulario(self, db, formulario):
+        query = self.generate_regularizacion_query(db, formulario)
+
+        after_current_form_query = query.filter(
+            Multipropietario.ano_vigencia_inicial > formulario.fecha_inscripcion)
+        after_current_form = after_current_form_query.all()
+
+        return after_current_form
+
+    @staticmethod
+    def generate_compraventa_multipropietarios_tables(db, formulario):
         query = db.session.query(Multipropietario).filter(
             and_(
                 Multipropietario.comuna == formulario.comuna,
@@ -117,42 +184,11 @@ class MultipropietarioHandler:
                 Multipropietario.fecha_inscripcion > formulario.fecha_inscripcion
             )
         )
-        future_multipropietarios: List[Multipropietario] = future_query.all()
 
         tabla_multipropietario: List[Multipropietario] = query.all()
+        future_multipropietarios: List[Multipropietario] = future_query.all()
 
-        # Create a list of run_ruts for all enajenantes
-        enajenante_run_ruts = [
-            enajenante.run_rut for enajenante in formulario.enajenantes]
-
-        multi_sin_enajenantes, multi_solo_enajenantes = CompraVenta.separate_multipropietario_enajenantes_from_multipropietario_list(
-            tabla_multipropietario, enajenante_run_ruts)
-
-        # if enajenante_fantasma():
-        sum_porc_adquirientes = CompraVenta.sum_porc_derecho(formulario.adquirentes)
-
-        if future_multipropietarios:
-            forms_to_reprocess = tabla_multipropietario + future_multipropietarios
-            reprocess_multipropietario_entries_with_new_formulario(db, self, formulario, forms_to_reprocess)
-
-        else:
-            if sum_porc_adquirientes == 100:
-                print('Compraventa E1')
-                CompraVenta.sum_adquirientes_100(formulario, db, tabla_multipropietario, multi_solo_enajenantes, multi_sin_enajenantes)
-
-            elif sum_porc_adquirientes == 0:
-                print('Compraventa E2')
-                CompraVenta.sum_adquirientes_0(formulario, db, multi_solo_enajenantes, multi_sin_enajenantes)
-
-            elif len(formulario.enajenantes) == 1 and len(formulario.adquirentes) == 1 and 0 < sum_porc_adquirientes < 100:
-                print('Compraventa E3')
-                CompraVenta.enajenante_1_adquiriente_1(formulario, db, tabla_multipropietario,
-                                                       multi_solo_enajenantes, multi_sin_enajenantes)
-
-            else:
-                print('Compraventa E4')
-                CompraVenta.multiples_adquirientes_and_enajenantes_1_99(formulario, db, tabla_multipropietario,
-                                                                        multi_solo_enajenantes, multi_sin_enajenantes)
+        return tabla_multipropietario, future_multipropietarios
 
     def convert_form_into_object(self, form: FormularioForm) -> FormularioObject:
         parsed_enajenantes = []
