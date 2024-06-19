@@ -89,6 +89,64 @@
     "fojas": 5,
     "fechaInscripcion": "2020-07-21",
     "nroInscripcion": 5432
+  },
+  {
+    "_comment": "3", 
+    "CNE": 99,
+    "bienRaiz": {
+      "comuna": 77,
+      "manzana": 66,
+      "predio": 32
+    },
+    "adquirentes": [
+      {
+        "RUNRUT": "1-9",
+        "porcDerecho": 30
+      },
+      {
+        "RUNRUT": "3-5",
+        "porcDerecho": 20
+      }
+    ],
+    "fojas": 2,
+    "fechaInscripcion": "2021-06-08",
+    "nroInscripcion": 444
+  },
+   {
+    "_comment": "3",
+    "CNE": 8,
+    "bienRaiz": {
+      "comuna": 77,
+      "manzana": 66,
+      "predio": 32
+    },
+    "enajenantes": [
+      {
+        "RUNRUT": "1-9",
+        "porcDerecho": 0
+      },
+      {
+        "RUNRUT": "2-7",
+        "porcDerecho": 0
+      }
+    ],
+    "adquirentes": [
+      {
+        "RUNRUT": "11-6",
+        "porcDerecho": 0
+      },
+      {
+        "RUNRUT": "12-4",
+        "porcDerecho": 0
+      },
+      {
+        "RUNRUT": "13-2",
+        "porcDerecho": 0
+      }
+    ],
+    "fojas": 5,
+    "fechaInscripcion": "2021-07-23",
+    "nroInscripcion": 5432
   }
     ]
 }

@@ -7,7 +7,11 @@
     {"comuna": "77", "manzana": "65", "predio": "32", "run_rut": "3-5", "porc_derecho": 80.0, "fojas": null, "ano_inscripcion": null, "num_inscripcion": null, "fecha_inscripcion": null, "ano_vigencia_inicial": 2020, "ano_vigencia_final": 2020},
     {"comuna": "77", "manzana": "65", "predio": "32", "run_rut": "11-6", "porc_derecho": 20.0, "fojas": 5, "ano_inscripcion": 2020, "num_inscripcion": 5432, "fecha_inscripcion": "2020-07-21", "ano_vigencia_inicial": 2020, "ano_vigencia_final": 2020},
     {"comuna": "77", "manzana": "65", "predio": "32", "run_rut": "1-9", "porc_derecho": 80.0, "fojas": 2, "ano_inscripcion": 2021, "num_inscripcion": 444, "fecha_inscripcion": "2021-06-08", "ano_vigencia_inicial": 2021, "ano_vigencia_final": null},
-    {"comuna": "77", "manzana": "65", "predio": "32", "run_rut": "3-5", "porc_derecho": 20.0, "fojas": 2, "ano_inscripcion": 2021, "num_inscripcion": 444, "fecha_inscripcion": "2021-06-08", "ano_vigencia_inicial": 2021, "ano_vigencia_final": null}
+    {"comuna": "77", "manzana": "65", "predio": "32", "run_rut": "3-5", "porc_derecho": 20.0, "fojas": 2, "ano_inscripcion": 2021, "num_inscripcion": 444, "fecha_inscripcion": "2021-06-08", "ano_vigencia_inicial": 2021, "ano_vigencia_final": null},
 
+    {"comuna": "77", "manzana": "66", "predio": "32", "run_rut": "3-5", "porc_derecho": 20.0, "fojas": 2, "ano_inscripcion": 2021, "num_inscripcion": 444, "fecha_inscripcion": "2021-06-08", "ano_vigencia_inicial": 2021, "ano_vigencia_final": null},
+    {"comuna": "77", "manzana": "66", "predio": "32", "run_rut": "11-6", "porc_derecho": 10.0, "fojas": 5, "ano_inscripcion": 2021, "num_inscripcion": 5432, "fecha_inscripcion": "2021-07-23", "ano_vigencia_inicial": 2021, "ano_vigencia_final": null},
+    {"comuna": "77", "manzana": "66", "predio": "32", "run_rut": "12-4", "porc_derecho": 10.0, "fojas": 5, "ano_inscripcion": 2021, "num_inscripcion": 5432, "fecha_inscripcion": "2021-07-23", "ano_vigencia_inicial": 2021, "ano_vigencia_final": null},
+    {"comuna": "77", "manzana": "66", "predio": "32", "run_rut": "13-2", "porc_derecho": 10.0, "fojas": 5, "ano_inscripcion": 2021, "num_inscripcion": 5432, "fecha_inscripcion": "2021-07-23", "ano_vigencia_inicial": 2021, "ano_vigencia_final": null}
 
 ]

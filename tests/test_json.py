@@ -205,7 +205,7 @@ class JsonProcessing(unittest.TestCase):
                     assert result.manzana == expected["manzana"]
                     assert result.predio == expected["predio"]
                     assert result.run_rut == expected["run_rut"]
-                    assert result.porc_derecho == approx(expected["porc_derecho"], rel=1e-2)
+                    assert result.porc_derecho == approx(expected["porc_derecho"], relx=1e-2)
                     assert result.fojas == expected["fojas"]
                     assert result.ano_inscripcion == expected["ano_inscripcion"]
                     assert result.num_inscripcion == expected["num_inscripcion"]

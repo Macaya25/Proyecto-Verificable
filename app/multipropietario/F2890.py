@@ -174,11 +174,13 @@ class CompraVenta:
                 if multipropietario.run_rut == enajenante.run_rut:
                     final_porc_derecho = multipropietario.porc_derecho - enajenante.porc_derecho
 
-                    if final_porc_derecho > 0:
-                        updated_previous_multipropietario = CompraVenta.update_multipropietario_change_porcentaje(
-                            formulario, multipropietario, final_porc_derecho)
+                    if final_porc_derecho < 0:
+                        final_porc_derecho = 0
 
-                        db.session.add(updated_previous_multipropietario)
+                    updated_previous_multipropietario = CompraVenta.update_multipropietario_change_porcentaje(
+                        formulario, multipropietario, final_porc_derecho)
+
+                    db.session.add(updated_previous_multipropietario)
 
         print('Formulario adqs: ', formulario.adquirentes)
         for adquiriente in formulario.adquirentes:
