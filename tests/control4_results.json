@@ -24,6 +24,17 @@
     {"comuna": "1101", "manzana": "12", "predio": "9", "run_rut": "2-7", "porc_derecho": 5.0, "fojas": 32, "ano_inscripcion": 2021, "num_inscripcion": 1, "fecha_inscripcion": "2021-01-01", "ano_vigencia_inicial": 2022, "ano_vigencia_final": null},
     {"comuna": "1101", "manzana": "12", "predio": "9", "run_rut": "3-5", "porc_derecho": 5.0, "fojas": 32, "ano_inscripcion": 2021, "num_inscripcion": 1, "fecha_inscripcion": "2021-01-01", "ano_vigencia_inicial": 2022, "ano_vigencia_final": null},
     {"comuna": "1101", "manzana": "12", "predio": "9", "run_rut": "125-2", "porc_derecho": 20.0, "fojas": 2141, "ano_inscripcion": 2022, "num_inscripcion": 123, "fecha_inscripcion": "2022-06-01", "ano_vigencia_inicial": 2022, "ano_vigencia_final": null},
-    {"comuna": "1101", "manzana": "12", "predio": "9", "run_rut": "140-3", "porc_derecho": 15.0, "fojas": 2141, "ano_inscripcion": 2022, "num_inscripcion": 123, "fecha_inscripcion": "2022-06-01", "ano_vigencia_inicial": 2022, "ano_vigencia_final": null}
+    {"comuna": "1101", "manzana": "12", "predio": "9", "run_rut": "140-3", "porc_derecho": 15.0, "fojas": 2141, "ano_inscripcion": 2022, "num_inscripcion": 123, "fecha_inscripcion": "2022-06-01", "ano_vigencia_inicial": 2022, "ano_vigencia_final": null},
+
+    {"comuna": "1101", "manzana": "68", "predio": "32", "run_rut": "2-7", "porc_derecho": 10.0, "fojas": 32, "ano_inscripcion": 2021, "num_inscripcion": 1, "fecha_inscripcion": "2021-01-01", "ano_vigencia_inicial": 2021, "ano_vigencia_final": 2021},
+    {"comuna": "1101", "manzana": "68", "predio": "32", "run_rut": "3-5", "porc_derecho": 20.0, "fojas": 32, "ano_inscripcion": 2021, "num_inscripcion": 1, "fecha_inscripcion": "2021-01-01", "ano_vigencia_inicial": 2021, "ano_vigencia_final": 2021},
+    {"comuna": "1101", "manzana": "68", "predio": "32", "run_rut": "88-9", "porc_derecho": 55.0, "fojas": 32, "ano_inscripcion": 2021, "num_inscripcion": 1, "fecha_inscripcion": "2021-01-01", "ano_vigencia_inicial": 2021, "ano_vigencia_final": 2021},
+    {"comuna": "1101", "manzana": "68", "predio": "32", "run_rut": "150-4", "porc_derecho": 15.0, "fojas": 32, "ano_inscripcion": 2021, "num_inscripcion": 1, "fecha_inscripcion": "2021-01-01", "ano_vigencia_inicial": 2021, "ano_vigencia_final": 2021},
+    {"comuna": "1101", "manzana": "68", "predio": "32", "run_rut": "88-9", "porc_derecho": 45.8333, "fojas": 32, "ano_inscripcion": 2021, "num_inscripcion": 1, "fecha_inscripcion": "2021-01-01", "ano_vigencia_inicial": 2022, "ano_vigencia_final": null},
+    {"comuna": "1101", "manzana": "68", "predio": "32", "run_rut": "150-4", "porc_derecho": 20.8333, "fojas": 32, "ano_inscripcion": 2021, "num_inscripcion": 1, "fecha_inscripcion": "2021-01-01", "ano_vigencia_inicial": 2022, "ano_vigencia_final": null},
+    {"comuna": "1101", "manzana": "68", "predio": "32", "run_rut": "3-5", "porc_derecho": 4.16667, "fojas": 32, "ano_inscripcion": 2021, "num_inscripcion": 1, "fecha_inscripcion": "2021-01-01", "ano_vigencia_inicial": 2022, "ano_vigencia_final": null},
+    {"comuna": "1101", "manzana": "68", "predio": "32", "run_rut": "125-2", "porc_derecho": 16.6667, "fojas": 2141, "ano_inscripcion": 2022, "num_inscripcion": 123, "fecha_inscripcion": "2022-06-01", "ano_vigencia_inicial": 2022, "ano_vigencia_final": null},
+    {"comuna": "1101", "manzana": "68", "predio": "32", "run_rut": "140-3", "porc_derecho": 12.5, "fojas": 2141, "ano_inscripcion": 2022, "num_inscripcion": 123, "fecha_inscripcion": "2022-06-01", "ano_vigencia_inicial": 2022, "ano_vigencia_final": null}
+
 
 ]
