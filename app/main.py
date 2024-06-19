@@ -43,7 +43,7 @@ def get_create_form_view():
     return render_template('create_form.html', form=form)
 
 
-@app.route('/create_form', methods=['POST'])
+@app.route('/form', methods=['POST'])
 def create_form_route():
 
     form = FormularioForm()
@@ -74,17 +74,10 @@ def show_all_forms_route():
 def get_create_json_form_view():
     form = JSONForm()
 
-    # if form.validate_on_submit():
-    #     submitted_file = form.file.data
-    #     is_valid_json = analyse_json_save_into_db_and_process_it(db, multiprop_handler, submitted_file)
-
-    #     if is_valid_json:
-    #         return redirect(url_for('show_all_forms_route'))
-
     return render_template('create_form_JSON.html', form=form)
 
 
-@app.route('/form/submit_json', methods=['POST'])
+@app.route('/form/json', methods=['POST'])
 def create_json_form_route():
     form = JSONForm()
 
@@ -109,16 +102,21 @@ def obtener_descripcion_cne(cne_id):
     return cne.descripcion if cne else "Descripción no encontrada"
 
 
-@app.route('/multipropietario', methods=['GET', 'POST'])
-def multipropietario_route():
+@app.route('/multipropietario', methods=['GET'])
+def get_multipropietarios_route():
     form = SearchForm()
     search_results = []
-    print("estamos en multipropietario:", request)
-    if request.method == 'POST':
-        search_results = multiprop_handler.search_multipropietario(db, request)
-        return render_template('multipropietario.html', form=form, search_results=search_results)
 
     search_results = Multipropietario.query.all()
+    return render_template('multipropietario.html', form=form, search_results=search_results)
+
+
+@app.route('/multipropietario', methods=['POST'])
+def search_multipropietarios():
+    form = SearchForm()
+
+    search_results = multiprop_handler.search_multipropietario(db, request)
+
     return render_template('multipropietario.html', form=form, search_results=search_results)
 
 
