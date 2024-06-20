@@ -30,18 +30,6 @@ def remove_from_multipropietario(db, entries_after_current_form: List[Multipropi
         db.session.commit()
 
 
-def element_exist(session, element):
-    return session.query(Multipropietario).filter_by(comuna=element.comuna,
-                                                     manzana=element.manzana,
-                                                     predio=element.predio,
-                                                     run_rut=element.run_rut,
-                                                     fojas=element.fojas,
-                                                     porc_derecho=element.porc_derecho,
-                                                     ano_vigencia_inicial=element.ano_vigencia_inicial,
-                                                     ano_vigencia_final=element.ano_vigencia_final,
-                                                     fecha_inscripcion=element.fecha_inscripcion).first()
-
-
 def reprocess_multipropietario_entries_with_new_formulario(db, handler, formulario, entries: List[Multipropietario]):
     print('Multiprop: ', entries)
     sorted_formularios = add_formulario_with_multipropietarios_and_sort(db, formulario, entries)

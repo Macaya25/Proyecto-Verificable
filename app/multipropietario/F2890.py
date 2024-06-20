@@ -1,6 +1,6 @@
 from typing import List
 from multipropietario.multipropietario_tools import (
-    generate_multipropietario_entry_from_formulario, FormularioObject, remove_from_multipropietario, element_exist)
+    generate_multipropietario_entry_from_formulario, FormularioObject, remove_from_multipropietario)
 from flask_sqlalchemy import SQLAlchemy
 from models import Multipropietario, Formulario, Enajenante
 from tools import is_empty, CONSTANTS
@@ -202,8 +202,7 @@ class CompraVenta:
         for adquiriente in formulario.adquirentes:
             new_multipropietario = generate_multipropietario_entry_from_formulario(
                 formulario, adquiriente.run_rut, adquiriente.porc_derecho)
-            if not element_exist(db.session, new_multipropietario):
-                db.session.add(new_multipropietario)
+            db.session.add(new_multipropietario)
 
     @staticmethod
     def sum_porc_derecho(lst) -> float:

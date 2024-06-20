@@ -47,6 +47,7 @@ def get_create_form_view():
 def create_form_route():
 
     form = FormularioForm()
+    # Add the comunas from database to allow them as valid choices
     form.comuna.choices = [(comuna.id, comuna.descripcion)
                            for comuna in Comuna.query.order_by('descripcion')]
 
